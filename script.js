@@ -5,44 +5,73 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 
-
-window.addEventListener('resize', ()=>{
-    init();
-})
 // grid Variables
 let gridArr;
 let gridBlockWidth = canvas.width / 12;
 let maxGridRows = Math.floor(canvas.height / gridBlockWidth);
 let gridBlockHeight = innerHeight / maxGridRows;
 let maxGridBlocks = maxGridRows * 12;
-// Synth Variables
+// Global Synth Variables
 const audioCTX = new AudioContext;
+let globalGainNode = audioCTX.createGain();
+globalGainNode.gain.value = 0.3;
+let gainAdjustment = 0.01;
 let gainNode = audioCTX.createGain();
-gainNode.gain.value = 0.4;
-gainNode.connect(audioCTX.destination);
-let baseFreq = 16.35; 
+globalGainNode.connect(audioCTX.destination);
+// Global NOtes Variables
+let rootNote = 16.35; 
 let notesTable = [];
 let playedNotes = [];
+let selectedWaveform = "sine";
 // Mouse Controller
 let mouse = {};
 window.addEventListener('mousemove', (e)=>{
     mouse.x = e.clientX;
     mouse.y = e.clientY;
 });
+window.addEventListener('mousewheel', (e)=>{
+    if(e.wheelDeltaY < 0 && globalGainNode.gain.value - gainAdjustment > 0){
+        globalGainNode.gain.exponentialRampToValueAtTime(globalGainNode.gain.value - gainAdjustment, audioCTX.currentTime + 0.01);
+    }
+    if(e.wheelDeltaY < 0 && globalGainNode.gain.value - gainAdjustment < 0){
+        globalGainNode.gain.exponentialRampToValueAtTime(0.00001, audioCTX.currentTime + 0.01);
+    }
+    if(e.wheelDeltaY > 0 && globalGainNode.gain.value + gainAdjustment <= 1){
+        globalGainNode.gain.exponentialRampToValueAtTime(globalGainNode.gain.value + gainAdjustment, audioCTX.currentTime + 0.01);
+    }
+})
+window.addEventListener('keypress', (e)=>{
+    console.log(e.which);
+    switch(e.which){
+        case 49: selectedWaveform = "sine"
+        break;
+        case 50: selectedWaveform = "square"
+        break;
+        case 51: selectedWaveform = "sawtooth"
+        break;
+        case 52: selectedWaveform = "square"
+        break;
+    }
+})
+
+window.addEventListener('resize', ()=>{
+    init();
+})
 // Synth
 
 createNote = (freq) => {
     function Note () {
         this.osc = audioCTX.createOscillator();
+        this.osc.type = selectedWaveform;
         this.gainNode = audioCTX.createGain();
         this.noteOn = false;
         this.freq = freq;
         this.play = () => {
             this.osc.frequency.value = this.freq;
             this.osc.connect(this.gainNode);
-            this.gainNode.connect(audioCTX.destination);
-            this.gainNode.gain.value = 0.01;
-            this.gainNode.gain.exponentialRampToValueAtTime(0.5, audioCTX.currentTime + 0.01);
+            this.gainNode.connect(globalGainNode);
+            this.gainNode.gain = 0.01;
+            this.gainNode.gain.exponentialRampToValueAtTime(0.3, audioCTX.currentTime + 0.01);
             this.osc.start(0);
         }
         this.volumeDrop = () => {
@@ -54,7 +83,6 @@ createNote = (freq) => {
                 this.osc.stop();
             }, 500);
         }
-
 }
     let newNote =  new Note;
     player(newNote);
@@ -76,12 +104,7 @@ player = (newNote) => {
     // Keep only 16 voices
     if(playedNotes.length > 16){
         playedNotes.pop();
-        console.log(playedNotes);
     }
-    
-
-    
-    
 }
 // Utility Functions
 randomColor = () => {
@@ -124,11 +147,7 @@ gridGenerator = (x, y, w, h, color, index) =>{
         this.update = () => {
             if(this.opacity <= 1.1 && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
                 if(this.noteOn == false){
-                    
-                    let newNote = createNote(notesTable[this.index]);
-                    console.log(newNote);
-                    player()
-                    
+                    createNote(notesTable[this.index]);
                 }
                     this.opacity = this.opacity + 0.05;
                     this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
@@ -139,8 +158,7 @@ gridGenerator = (x, y, w, h, color, index) =>{
                     this.noteOn = false;
                     this.opacity = this.opacity - 0.1;
                     this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
-                }
-                                 
+                }               
             }
             this.draw();
         }
@@ -166,7 +184,7 @@ gridArrGenerator = () => {
         let xPosition = gridColNum * gridBlockWidth;
         let color = randomColor();
         let  newGridBlock = gridGenerator(xPosition, yPosition, gridBlockWidth, gridBlockHeight, color, i);
-        let freq = baseFreq * Math.pow(1.059463, i);
+        let freq = rootNote * Math.pow(1.059463, i);
         gridArr.push(newGridBlock);
         notesTable.push(freq);
         gridColNum++;
