@@ -29,6 +29,10 @@ globalGainNode.connect(audioCTX.destination);
 let rootNote = 16.35; 
 let notesTable = [];
 let playedNotes = [];
+let currentNote;
+let transpose = 0;
+let octave = 0;
+let semiTones = 36;
 let selectedWaveform = "sine";
 // Mouse Controller
 let mouse = {};
@@ -72,6 +76,12 @@ setDisplayText = (command, text) => {
     if(command == "waveform"){
         displayText = `Waveform: ${text}`
     }
+    if(command == "transpose"){
+        displayText = `Transpose: ${text}`
+    }
+    if(command == "octave"){
+        displayText = `Octave: ${text}`
+    }
     timerInterval = setInterval(runDisplayTimer, 500)
     
 }
@@ -91,25 +101,82 @@ window.addEventListener('mousewheel', (e)=>{
     resetDisplayTimer();
 })
 window.addEventListener('keypress', (e)=>{
-    console.log(e.which);
-    switch(e.which){
-        case 49: selectedWaveform = "sine";
+    console.log(e);
+    switch(e.code){
+        case "Digit1": selectedWaveform = "sine";
         setDisplayText("waveform", "Sine");
         break;
-        case 50: selectedWaveform = "square";
+        case "Digit2": selectedWaveform = "square";
         setDisplayText("waveform", "Square");
         break;
-        case 51: selectedWaveform = "sawtooth";
+        case "Digit3": selectedWaveform = "sawtooth";
         setDisplayText("waveform", "Sawtooth");
         break;
-        case 52: selectedWaveform = "triangle";
+        case "Digit4": selectedWaveform = "triangle";
         setDisplayText("waveform", "Triangle");
         break;
-        case 109: muteSound()
+        case "KeyM": muteSound()
         break;
+        case "KeyA": currentNote = notesTable[12 + semiTones];
+        break;
+        case "KeyD": currentNote = notesTable[8 + semiTones];
+        break;
+        case "KeyE": currentNote = notesTable[9 + semiTones];
+        break;
+        case "KeyF": currentNote = notesTable[7 + semiTones];
+        break;
+        case "KeyG": currentNote = notesTable[5 + semiTones];
+        break;
+        case "KeyH": currentNote = notesTable[3 + semiTones];
+        break;
+        case "KeyJ": currentNote = notesTable[1 + semiTones];
+        break;
+        case "KeyK": currentNote = notesTable[0 + semiTones];
+        break;
+        case "KeyS": currentNote = notesTable[10 + semiTones];
+        break;
+        case "KeyT": currentNote = notesTable[6 + semiTones];
+        break;
+        case "KeyU": currentNote = notesTable[2 + semiTones];
+        break;
+        case "KeyW": currentNote = notesTable[11 + semiTones];
+        break;
+        case "KeyY": currentNote = notesTable[4 + semiTones];
+        break;
+        case "Equal": setScale(e);
+        break;
+        case "Minus": setScale(e);
+        break;
+
     }
 });
 
+setScale = (e) => {
+    console.log(e.shiftKey);
+    if(e.shiftKey == true && octave >= -2 && e.code == "Equal"){
+        semiTones = semiTones - 12;
+        octave--;
+        setDisplayText("octave", -octave);
+    }
+    if(e.shiftKey == true && octave <= 3 && e.code == "Minus"){
+        semiTones = semiTones + 12;
+        octave++;
+        setDisplayText("octave", -octave);
+    }
+    if(e.shiftKey == false && transpose >= -11 && e.code == "Equal"){
+        semiTones--;
+        transpose--;
+        setDisplayText("transpose", -transpose);
+    }
+    if(e.shiftKey == false && transpose <= 11 && e.code == "Minus"){
+        semiTones++;
+        transpose++;
+        setDisplayText("transpose", -transpose);
+    }
+    console.log(octave);
+    console.log(semiTones);
+    
+}
 window.addEventListener('resize', ()=>{
     init();
 })
@@ -165,11 +232,11 @@ player = (newNote) => {
 // Utility Functions
 randomColor = () => {
     let colors = [
-        "44, 37 , 89, ",
-        "22, 20, 38, ",
-        "151, 92, 150, ",
-        "88, 37, 112, ",
-        "48, 27, 66, "
+        "255, 83 , 13, ",
+        "232, 44, 12, ",
+        "255, 0, 0, ",
+        "232, 12, 122, ",
+        "255, 13, 255, "
     ]
     let i = Math.floor(Math.random() * 5);
     return colors[i];
@@ -201,15 +268,21 @@ gridGenerator = (x, y, w, h, color, index) =>{
             c.stroke();
         };
         this.update = () => {
+            if(this.noteOn == false && notesTable.indexOf(currentNote) == this.index){
+                this.opacity = globalGainNode.gain.value;
+                this.noteOn = true;
+                createNote(notesTable[this.index]);
+            }
             if(this.opacity <= globalGainNode.gain.value && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
                 if(this.noteOn == false){
+                    currentNote = notesTable[this.index];
                     createNote(notesTable[this.index]);
                 }
                     this.opacity = this.opacity + 0.05;
                     this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
                     this.noteOn = true;
             }
-            else if(this.opacity >= 0.01){
+            else if(this.opacity >= 0.01 && notesTable.indexOf(currentNote) != this.index){
                 if(mouse.x <= this.x || mouse.x >= this.x + this.w || mouse.y <= this.y || mouse.y >= this.y + this.h){
                     this.noteOn = false;
                     this.opacity = this.opacity - 0.01;
