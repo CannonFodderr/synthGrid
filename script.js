@@ -8,8 +8,18 @@ let maxParticles = 120;
 let particlesArr = [];
 // Hud
 let displayText = "";
+let tutorialArr = [
+    "Hello !",
+    "We are updating your computer",
+    "Just Kidding :)",
+    'Press "A-K" to play',
+    "Press M for Mute",
+    "Press [ ] to change octaves",
+    "Transpose: - +",
+    "Set Volume with Mouse Wheel"
+]
 let timerInterval;
-let displayTimer = 1;
+let displayTimer = 3;
 let isMuted = false;
 // grid Variables
 let gridArr;
@@ -19,18 +29,21 @@ let gridBlockHeight = innerHeight / maxGridRows;
 let maxGridBlocks = maxGridRows * 12;
 // Global Synth Variables
 const audioCTX = new AudioContext;
+// audioCTX.createBuffer(2, 44100, 44100);
 let globalGainNode = audioCTX.createGain();
-globalGainNode.gain.value = 0.3;
+globalGainNode.gain.value = 0.5;
 let gainRestore = 0.3;
 let gainAdjustment = 0.01;
 let gainNode = audioCTX.createGain();
 globalGainNode.connect(audioCTX.destination);
-// Global NOtes Variables
+// Global Notes Variables
+let noteON = false;
 let rootNote = 16.35; 
 let notesTable = [];
 let playedNotes = [];
 let currentNote;
 let transpose = 0;
+let transposeArr = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B", "C"];
 let octave = 0;
 let semiTones = 36;
 let selectedWaveform = "sine";
@@ -55,8 +68,9 @@ muteSound = () => {
         isMuted = false;
     }
 }
+// HUD Display
 resetDisplayTimer = () => {
-    displayTimer = 1;
+    displayTimer = 3;
 }
 runDisplayTimer = () => {
     if(displayTimer > 0){
@@ -74,16 +88,18 @@ setDisplayText = (command, text) => {
         displayText = `Volume: ${text}`;
     }
     if(command == "waveform"){
-        displayText = `Waveform: ${text}`
+        displayText = `Waveform: ${text}`;
     }
     if(command == "transpose"){
-        displayText = `Transpose: ${text}`
+        displayText = `Transpose: ${text}`;
     }
     if(command == "octave"){
-        displayText = `Octave: ${text}`
+        displayText = `Octave: ${text}`;
     }
-    timerInterval = setInterval(runDisplayTimer, 500)
-    
+    if(command == "tutorial"){
+        displayText = `${text}`;
+    }
+    timerInterval = setInterval(runDisplayTimer, 500);
 }
 
 window.addEventListener('mousewheel', (e)=>{
@@ -100,8 +116,8 @@ window.addEventListener('mousewheel', (e)=>{
     setDisplayText("globalGain", Math.floor(globalGainNode.gain.value * 100))
     resetDisplayTimer();
 })
-window.addEventListener('keypress', (e)=>{
-    console.log(e);
+window.addEventListener('keydown', (e)=>{
+    console.log(noteON);
     switch(e.code){
         case "Digit1": selectedWaveform = "sine";
         setDisplayText("waveform", "Sine");
@@ -118,64 +134,79 @@ window.addEventListener('keypress', (e)=>{
         case "KeyM": muteSound()
         break;
         case "KeyA": currentNote = notesTable[12 + semiTones];
+        noteON = true;
         break;
         case "KeyD": currentNote = notesTable[8 + semiTones];
+        noteON = true;
         break;
         case "KeyE": currentNote = notesTable[9 + semiTones];
+        noteON = true;
         break;
         case "KeyF": currentNote = notesTable[7 + semiTones];
+        noteON = true;
         break;
         case "KeyG": currentNote = notesTable[5 + semiTones];
+        noteON = true;
         break;
         case "KeyH": currentNote = notesTable[3 + semiTones];
+        noteON = true;
         break;
         case "KeyJ": currentNote = notesTable[1 + semiTones];
+        noteON = true;
         break;
         case "KeyK": currentNote = notesTable[0 + semiTones];
+        noteON = true;
         break;
         case "KeyS": currentNote = notesTable[10 + semiTones];
+        noteON = true;
         break;
         case "KeyT": currentNote = notesTable[6 + semiTones];
+        noteON = true;
         break;
         case "KeyU": currentNote = notesTable[2 + semiTones];
+        noteON = true;
         break;
         case "KeyW": currentNote = notesTable[11 + semiTones];
+        noteON = true;
         break;
         case "KeyY": currentNote = notesTable[4 + semiTones];
+        noteON = true;
+        break;
+        case "BracketRight": setScale(e);
+        break;
+        case "BracketLeft": setScale(e);
         break;
         case "Equal": setScale(e);
         break;
         case "Minus": setScale(e);
         break;
-
     }
 });
+window.addEventListener('keyup', (e)=>{
+    noteON = false;
+})
 
 setScale = (e) => {
-    console.log(e.shiftKey);
-    if(e.shiftKey == true && octave >= -2 && e.code == "Equal"){
+    if(octave >= -2 && e.code == "BracketRight"){
         semiTones = semiTones - 12;
         octave--;
         setDisplayText("octave", -octave);
     }
-    if(e.shiftKey == true && octave <= 3 && e.code == "Minus"){
+    if(octave <= 2 && e.code == "BracketLeft"){
         semiTones = semiTones + 12;
         octave++;
         setDisplayText("octave", -octave);
     }
-    if(e.shiftKey == false && transpose >= -11 && e.code == "Equal"){
+    if(transpose >= -11 && e.code == "Equal"){
         semiTones--;
         transpose--;
         setDisplayText("transpose", -transpose);
     }
-    if(e.shiftKey == false && transpose <= 11 && e.code == "Minus"){
+    if(transpose <= 11 && e.code == "Minus"){
         semiTones++;
         transpose++;
         setDisplayText("transpose", -transpose);
-    }
-    console.log(octave);
-    console.log(semiTones);
-    
+    }  
 }
 window.addEventListener('resize', ()=>{
     init();
@@ -194,22 +225,35 @@ createNote = (freq) => {
             this.osc.connect(this.gainNode);
             this.gainNode.connect(globalGainNode);
             this.gainNode.gain = 0.01;
-            this.gainNode.gain.exponentialRampToValueAtTime(0.3, audioCTX.currentTime + 0.01);
             this.osc.start(0);
+            this.gainNode.gain.exponentialRampToValueAtTime(0.1, audioCTX.currentTime + 0.001);
+            // Attack
+            this.gainNode.gain.exponentialRampToValueAtTime(0.5, audioCTX.currentTime + 0.001);
+            // Decay
+            this.gainNode.gain.exponentialRampToValueAtTime(0.3, audioCTX.currentTime + 0.03);
+            // Sustain
+            this.gainNode.gain.exponentialRampToValueAtTime(0.3, audioCTX.currentTime + 1);
+            // Release
+            this.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCTX.currentTime + 2);
         }
         this.volumeDrop = () => {
-            this.gainNode.gain.exponentialRampToValueAtTime(0.1, audioCTX.currentTime + 0.01);
+            console.log('drops')
+            this.gainNode.gain.exponentialRampToValueAtTime(0.05, audioCTX.currentTime + 0.01);
         }
         this.stop = () => {
-            this.gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCTX.currentTime + 0.5);
+            this.gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCTX.currentTime + 1);
             setTimeout(()=>{
-                this.osc.stop();
+                
             }, 500);
         }
 }
-    let newNote =  new Note;
-    player(newNote);
+    if(noteON == true){
+        let newNote =  new Note;
+        player(newNote);
+        noteON = false;
+    }
 }
+    
 
 player = (newNote) => {
     if(newNote != undefined){
@@ -218,8 +262,7 @@ player = (newNote) => {
             switch(i){
                 case 0: playedNotes[0].play();
                 break;
-                case i < 15: playedNotes[i].volumeDrop()
-                break;
+
                 default: playedNotes[i].stop();
             }
         }
@@ -254,6 +297,7 @@ gridGenerator = (x, y, w, h, color, index) =>{
         this.w = w;
         this.h = h;
         this.opacity = 0.001;
+        this.offset = 0;
         this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
         this.strokeColor = "#000";
         this.draw = () => {
@@ -268,24 +312,24 @@ gridGenerator = (x, y, w, h, color, index) =>{
             c.stroke();
         };
         this.update = () => {
-            if(this.noteOn == false && notesTable.indexOf(currentNote) == this.index){
+            if(notesTable.indexOf(currentNote) == this.index){
                 this.opacity = globalGainNode.gain.value;
                 this.noteOn = true;
                 createNote(notesTable[this.index]);
             }
             if(this.opacity <= globalGainNode.gain.value && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
                 if(this.noteOn == false){
-                    currentNote = notesTable[this.index];
-                    createNote(notesTable[this.index]);
+                    // currentNote = notesTable[this.index];
+                    // createNote(notesTable[this.index]);
                 }
                     this.opacity = this.opacity + 0.05;
                     this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
-                    this.noteOn = true;
+                    // this.noteOn = true;
             }
-            else if(this.opacity >= 0.01 && notesTable.indexOf(currentNote) != this.index){
+            else if(this.opacity >= 0.01){
                 if(mouse.x <= this.x || mouse.x >= this.x + this.w || mouse.y <= this.y || mouse.y >= this.y + this.h){
                     this.noteOn = false;
-                    this.opacity = this.opacity - 0.01;
+                    this.opacity = this.opacity - 0.005;
                     this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
                 }               
             }
@@ -339,17 +383,16 @@ particlesArrGenerator = () => {
 textGenerator = (text) => {
     function Text () {
         this.text = text;
-        this.opacity = 0.8;
+        this.opacity = 1;
         this.fillColor = `rgba(255, 255, 255, ${this.opacity})`;
         this.draw = () => {
+            this.opacity = 1;
+            this.fillColor = `rgba(255, 255, 255, ${this.opacity})`;
             c.beginPath();
             c.fillStyle = this.fillColor;
             c.textAlign = "center";
-            c.font = "2em Arial";
-            c.shadowBlur = 1;
+            c.font = "italic small-caps bold 30px arial";
             c.fillText(this.text, canvas.width / 2, 100, 400);
-            c.strokeStyle = "#000";
-            c.strokeText(this.text, canvas.width / 2, 100, 401);
         }
         this.update = () => {
             this.draw();
@@ -359,7 +402,7 @@ textGenerator = (text) => {
 }
 drawText = () => {
     let text = textGenerator(displayText);
-    text.draw();
+    text.update();
 }
 drawParticles = () => {
     for(let i = 0; i < particlesArr.length; i++){
@@ -374,10 +417,12 @@ particlesGenerator = (x, y, r) => {
         this.dx = (Math.random() - 0.5) * 0.15;
         this.dy = (Math.random() - 0.5) * 0.15;
         this.r = r;
+        this.offsetX = 0;
+        this.opacity = Math.random() + 0.01;
         this.stAng = 0;
         this.endAng = Math.PI * 2;
         this.clockwise = false;
-        this.fillColor = "#fff";
+        this.fillColor = `rgba(255, 255, 255. ${this.opacity})`;
         this.draw = () => {
             c.beginPath();
             c.fillStyle = this.fillColor;
@@ -385,6 +430,14 @@ particlesGenerator = (x, y, r) => {
             c.fill();
         }
         this.update = () => {
+            if(mouse.x > canvas.width / 2 && this.offsetX < 180){
+                this.x = this.x - Math.floor(globalGainNode.gain.value * 4) * (this.dx * 5);
+                this.offsetX++;
+            }
+            if(mouse.x < canvas.width / 2 && this.offsetX > -180){
+                this.x = this.x + Math.floor(globalGainNode.gain.value * 4) * (this.dx * 5);
+                this.offsetX--;
+            }
             if(this.x + this.r > canvas.width || this.x - this.r < 0){
                 this.dx = -this.dx;
             }
@@ -421,9 +474,15 @@ init = () => {
     gridArrGenerator();
     particlesArrGenerator()
     clearCanvas();
-    animate();
-}
+    animate();    
+} 
 
 
 init();
+
+tutorialArr.forEach((item)=>{
+    setTimeout(()=>{
+        setDisplayText("tutorial", item);
+    },3000 * tutorialArr.indexOf(item));
+})
 
