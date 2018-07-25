@@ -6,6 +6,7 @@ canvas.height = window.innerHeight;
 // Particles Variables
 let maxParticles = 120;
 let particlesArr = [];
+let cursorParticles = [];
 // Hud
 let displayText = "";
 let tutorialArr = [
@@ -400,6 +401,33 @@ textGenerator = (text) => {
     }
     return new Text
 }
+
+GenerateCursorParticles = () => {
+    function CursorParticle () {
+        this.i = 0;
+        this.velocity = -Math.random() * 0.1;
+        this.r = Math.random() * 0.8 + 1;
+        this.x = mouse.x + (Math.random() - 0.5) * 100 + this.r;
+        this.y = mouse.y + (Math.random() - 0.5) * 100 + this.r;
+        this.fillColor = `rgba(255, 255, 255, 0.7)`;
+        this.draw = () => {
+            c.beginPath();
+            c.fillStyle = this.fillColor;
+            c.arc(this.x, this.y, this.r, 0, this.i * 2, false);
+            c.fill();
+        }
+        this.update = () => {
+            if(this.i >= 360){
+                this.i = 0;
+            }
+            this.i = this.i + this.velocity;
+            this.x = mouse.x + this.r * 20 * Math.cos(this.i);
+            this.y = mouse.y + this.r * 20 * Math.sin(this.i); 
+            this.draw();
+        }
+    }
+    return new CursorParticle
+}
 drawText = () => {
     let text = textGenerator(displayText);
     text.update();
@@ -407,6 +435,11 @@ drawText = () => {
 drawParticles = () => {
     for(let i = 0; i < particlesArr.length; i++){
         particlesArr[i].update();
+    }
+}
+drawCursor = () => {
+    for(i = 0; i < cursorParticles.length; i++){
+        cursorParticles[i].update();
     }
 }
 // Particles Generator
@@ -452,12 +485,19 @@ particlesGenerator = (x, y, r) => {
     return new Particle;
 }
 
+cursorGenerator = () => {
+    for(i = 0; i < 50; i++){
+        let newParticle = GenerateCursorParticles();
+        cursorParticles.push(newParticle);
+    }
+}
 animate = () => {
     requestAnimationFrame(animate);
     clearCanvas();
     drawGrid();
     drawParticles();
     drawText();
+    drawCursor();
 }
 
 init = () => {
@@ -473,6 +513,7 @@ init = () => {
     gridBlockHeight = canvas.height / 8
     gridArrGenerator();
     particlesArrGenerator()
+    cursorGenerator();
     clearCanvas();
     animate();    
 } 
