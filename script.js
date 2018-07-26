@@ -48,11 +48,38 @@ let transposeArr = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B", "C"];
 let octave = 0;
 let semiTones = 36;
 let selectedWaveform = "sine";
+let adsr = {
+    attackTime: 0.5,
+    decayTime: 0.03,
+    sustainTime: 0.05,
+    releaseTime: 5
+};
 // Mouse Controller
 let mouse = {};
+setNoteEnvelopes = (event) => {
+    console.log(event.movementX)
+    if(event.clientY <= 1 || adsr.releaseTime <= 0.1){
+        adsr.releaseTime = 0.1;
+    }
+    if(event.clientY >= window.innerHeight - 10 || adsr.releaseTime >= 6){
+        adsr.releaseTime = 6;
+    }
+    if(event.clientX <= 1 || adsr.attackTime <= 0.1){
+        adsr.releaseTime = 0.1;
+    }
+    if(event.clientY >= window.innerWidth - 10 || adsr.attackTime >= 0.1){
+        adsr.releaseTime = 6;
+    }
+    adsr.releaseTime = 0 + event.clientY /canvas.height;
+    adsr.attackTime = 0 + event.clientX / canvas.width * 2;
+    console.log(adsr.attackTime);
+}
+
 window.addEventListener('mousemove', (e)=>{
     mouse.x = e.clientX;
     mouse.y = e.clientY;
+    setNoteEnvelopes(e);
+    
 });
 window.addEventListener('beforeunload', ()=>{
     audioCTX.close();
@@ -226,25 +253,27 @@ createNote = (freq) => {
             this.osc.connect(this.gainNode);
             this.gainNode.connect(globalGainNode);
             this.gainNode.gain = 0.01;
-            this.osc.start(0);
-            this.gainNode.gain.exponentialRampToValueAtTime(0.1, audioCTX.currentTime + 0.001);
+            this.osc.start();
+            // this.gainNode.gain.exponentialRampToValueAtTime(0.1, audioCTX.currentTime + 0.01);
             // Attack
-            this.gainNode.gain.exponentialRampToValueAtTime(0.5, audioCTX.currentTime + 0.001);
+            this.gainNode.gain.exponentialRampToValueAtTime(0.3 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime);
             // Decay
-            this.gainNode.gain.exponentialRampToValueAtTime(0.3, audioCTX.currentTime + 0.03);
+            this.gainNode.gain.exponentialRampToValueAtTime(0.2 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime + adsr.decayTime);
             // Sustain
-            this.gainNode.gain.exponentialRampToValueAtTime(0.3, audioCTX.currentTime + 1);
+            // this.gainNode.gain.exponentialRampToValueAtTime(0.3, audioCTX.currentTime + 1);
             // Release
-            this.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCTX.currentTime + 2);
+            this.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCTX.currentTime + adsr.attackTime + adsr.decayTime + adsr.releaseTime);
         }
         this.volumeDrop = () => {
             console.log('drops')
-            this.gainNode.gain.exponentialRampToValueAtTime(0.05, audioCTX.currentTime + 0.01);
+            this.gainNode.gain.exponentialRampToValueAtTime(0.005, audioCTX.currentTime + 0.0001);
         }
         this.stop = () => {
-            this.gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCTX.currentTime + 1);
+            this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, audioCTX.currentTime); 
+            this.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCTX.currentTime + 0.03);
+            // this.gainNode.gain.setTargetAtTime(0, audioCTX.currentTime, 0.015);
             setTimeout(()=>{
-                
+                this.osc.stop();
             }, 500);
         }
 }
@@ -263,7 +292,8 @@ player = (newNote) => {
             switch(i){
                 case 0: playedNotes[0].play();
                 break;
-
+                case 1:
+                break;
                 default: playedNotes[i].stop();
             }
         }
