@@ -14,6 +14,21 @@ body{
 
 canvas{
     /* display: block; */
+    /* opacity: 0.85; */
     position: relative;
     margin: 0 auto;
 }
+
+#bgImg{
+    position: fixed;
+    z-index: 100;
+    opacity: 0.9;
+    /* mix-blend-mode: color-dodge; */
+    /* mix-blend-mode: overlay; */
+    mix-blend-mode: soft-light;
+    bottom: -10%;
+    left: 0;
+    width: auto;
+    height: 100%;
+}
+

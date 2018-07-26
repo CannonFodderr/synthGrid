@@ -292,8 +292,7 @@ player = (newNote) => {
             switch(i){
                 case 0: playedNotes[0].play();
                 break;
-                case 1:
-                break;
+                case 1: break;
                 default: playedNotes[i].stop();
             }
         }
