@@ -57,7 +57,6 @@ let adsr = {
 // Mouse Controller
 let mouse = {};
 setNoteEnvelopes = (event) => {
-    console.log(event.movementX)
     if(event.clientY <= 1 || adsr.releaseTime <= 0.1){
         adsr.releaseTime = 0.1;
     }
@@ -72,7 +71,6 @@ setNoteEnvelopes = (event) => {
     }
     adsr.releaseTime = 0 + event.clientY /canvas.height;
     adsr.attackTime = 0 + event.clientX / canvas.width * 2;
-    console.log(adsr.attackTime);
 }
 
 window.addEventListener('mousemove', (e)=>{
@@ -145,7 +143,6 @@ window.addEventListener('mousewheel', (e)=>{
     resetDisplayTimer();
 })
 window.addEventListener('keydown', (e)=>{
-    console.log(noteON);
     switch(e.code){
         case "Digit1": selectedWaveform = "sine";
         setDisplayText("waveform", "Sine");
@@ -265,7 +262,6 @@ createNote = (freq) => {
             this.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCTX.currentTime + adsr.attackTime + adsr.decayTime + adsr.releaseTime);
         }
         this.volumeDrop = () => {
-            console.log('drops')
             this.gainNode.gain.exponentialRampToValueAtTime(0.005, audioCTX.currentTime + 0.0001);
         }
         this.stop = () => {
