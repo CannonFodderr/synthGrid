@@ -24,5 +24,6 @@ canvas {
     left: 0;
     width: auto;
     height: 100%;
+    cursor: none;
 }
 
