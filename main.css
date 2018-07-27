@@ -1,30 +1,24 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
 html, body{
     height: 100%;
     width: 100%;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    cursor: none;
 }
 
 body{
-    background-color: #000;
-    position: fixed;
+    overflow: hidden;
+    
 }
-
-canvas{
-    /* display: block; */
-    /* opacity: 0.85; */
-    position: relative;
-    margin: 0 auto;
+canvas {
+    cursor: none;
 }
-
-#bgImg{
+.img.bg1{
     position: fixed;
     z-index: 100;
     opacity: 0.9;
-    /* mix-blend-mode: color-dodge; */
-    /* mix-blend-mode: overlay; */
     mix-blend-mode: soft-light;
     bottom: -10%;
     left: 0;
