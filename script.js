@@ -13,12 +13,12 @@
     let displayText = "";
     let tutorialArr = [
         "Hello !",
-        "We are updating your device",
-        "Just Kidding :)",
         'Press "A-K" to play',
+        "Mouse position will alter the note length",
         "Press M for Mute",
         "Press [ ] to change octaves",
         "Transpose: - +",
+        'Press "SPACE" for Sustain',
         "Set Volume with Mouse Wheel"
     ]
     let timerInterval;
@@ -33,7 +33,7 @@
     // Global Synth Variables
     const audioCTX = new AudioContext;
     audioCTX.sampleRate = 44100;
-    let scriptNode = audioCTX.createScriptProcessor(2048, 2, 2);
+    let scriptNode = audioCTX.createScriptProcessor(1024, 2, 2);
     // Setup output limiter
     let limiter = audioCTX.createDynamicsCompressor();
     limiter.threshold = -0.3;
@@ -76,6 +76,7 @@
     let rootNote = 16.35; 
     let notesTable = [];
     let playedNotes = [];
+    let isSustain = false;
     let currentNote;
     let transpose = 0;
     let transposeArr = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B", "C"];
@@ -85,7 +86,7 @@
     let adsr = {
         attackTime: 0.5,
         decayTime: 0.03,
-        sustainTime: 0.05,
+        sustainTime: 0,
         releaseTime: 5
     };
     // Mouse Controller
@@ -239,9 +240,14 @@
             break;
             case "Minus": setScale(e);
             break;
+            case "Space": isSustain = true;
+            break;
         }
     });
     window.addEventListener('keyup', (e)=>{
+        if(e.code == "Space"){
+            isSustain = false;
+        }
         noteON = false;
     })
     // Transpose and Octaves
@@ -271,13 +277,14 @@
         init();
     })
     // Synth
-    
     createNote = (freq) => {
         function Note () {
             this.osc = audioCTX.createOscillator();
             this.osc.type = selectedWaveform;
             this.gainNode = audioCTX.createGain();
             this.noteOn = false;
+            this.isSustained = false;
+            this.sustain = 0.1
             this.freq = freq;
             this.play = () => {
                 this.osc.frequency.value = this.freq;
@@ -285,15 +292,23 @@
                 this.gainNode.connect(globalGainNode);
                 this.gainNode.gain = 0.01;
                 this.osc.start();
-                // this.gainNode.gain.exponentialRampToValueAtTime(0.1, audioCTX.currentTime + 0.01);
+                if(isSustain == true){
+                    this.isSustain = true
+                    this.sustain = 5;
+                }
                 // Attack
-                this.gainNode.gain.exponentialRampToValueAtTime(0.003 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime);
+                this.gainNode.gain.exponentialRampToValueAtTime(0.09 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime);
                 // Decay
-                this.gainNode.gain.exponentialRampToValueAtTime(0.002 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime + adsr.decayTime);
-                // Sustain
-                // this.gainNode.gain.exponentialRampToValueAtTime(0.3, audioCTX.currentTime + 1);
+                this.gainNode.gain.exponentialRampToValueAtTime(0.1 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime + adsr.decayTime);
+                // Sustain & release
+                if(this.isSustained === true){
+                    this.gainNode.gain.setValueAtTime(0.1 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime + adsr.decayTime);
+                    this.gainNode.gain.exponentialRampToValueAtTime(0.001, audioCTX.currentTime + adsr.attackTime + adsr.decayTime + this.sustain + adsr.releaseTime);
                 // Release
-                this.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCTX.currentTime + adsr.attackTime + adsr.decayTime + adsr.releaseTime);
+                }
+                if(this.isSustained == false){
+                    this.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCTX.currentTime + adsr.attackTime + adsr.decayTime + this.sustain + adsr.releaseTime);
+                }
             }
             this.volumeDrop = () => {
                 this.gainNode.gain.exponentialRampToValueAtTime(0.005, audioCTX.currentTime + 0.0001);
