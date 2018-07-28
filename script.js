@@ -1,7 +1,7 @@
 (()=> {
     const canvas = document.querySelector('canvas');
     let c = canvas.getContext('2d');
-    canvas.style.backgroundColor = "#000";
+    canvas.style.backgroundColor = "#000"  
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     // Particles Variables
