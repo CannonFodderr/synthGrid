@@ -456,11 +456,14 @@
         }
     }
     drawhud = () => {
-        tutorialArr.forEach((item)=>{
-            setTimeout(()=>{
-                setDisplayText("tutorial", item);
-            },3000 * tutorialArr.indexOf(item));
-        })
+        setTimeout(()=>{
+            tutorialArr.forEach((item)=>{
+                setTimeout(()=>{
+                    setDisplayText("tutorial", item);
+                },3000 * tutorialArr.indexOf(item));
+            })
+        }, 2000);
+        
     }
     // Hud text generator
     textGenerator = (text) => {
