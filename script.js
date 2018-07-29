@@ -1,4 +1,11 @@
 (()=> {
+    let loader = document.getElementById('loader')
+    let interval = setInterval(function() {
+        if(document.readyState === 'complete') {
+            clearInterval(interval);
+            loader.style.display = "none";
+        }    
+    }, 100);
     const canvas = document.querySelector('canvas');
     let c = canvas.getContext('2d');
     // canvas.style.backgroundColor = "rgba(0, 0, 0, 1)" ;
