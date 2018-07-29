@@ -10,7 +10,7 @@
     let c = canvas.getContext('2d');
     // canvas.style.backgroundColor = "rgba(0, 0, 0, 1)" ;
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.height = window.innerHeight * 0.75;
     // Particles Variables
     let maxParticles = 120;
     let particlesArr = [];
@@ -31,6 +31,7 @@
     let timerInterval;
     let displayTimer = 3;
     let isMuted = false;
+    let touchOn = false;
     // grid Variables
     let gridArr;
     let gridBlockWidth = canvas.width / 12;
@@ -251,9 +252,22 @@
             break;
         }
     });
+    window.addEventListener('touchstart', (e)=>{
+        console.log(e);
+        touchOn = true;
+        noteON = true;
+    });
     window.addEventListener('touchmove', (e)=>{
         console.log(e);
-
+        mouse.x = e.changedTouches[0].clientX;
+        mouse.y = e.changedTouches[0].clientY;
+        touchOn = false;
+        noteON = false;
+        
+    });
+    window.addEventListener('touchend', (e)=>{
+        noteON = false;
+        touchOn = false;
     })
     window.addEventListener('keyup', (e)=>{
         if(e.code == "Space"){
@@ -334,12 +348,13 @@
         if(noteON == true){
             let newNote =  new Note;
             player(newNote);
-            noteON = false;
+            touchOn = false;
         }
     }
         
     
     player = (newNote) => {
+        console.log(newNote)
         if(newNote != undefined){
             playedNotes.unshift(newNote);
             for(let i = 0; i < playedNotes.length; i++){
@@ -406,20 +421,21 @@
                 c.stroke();
             };
             this.update = () => {
+                
+                // check if hovered
+                if(this.opacity <= globalGainNode.gain.value && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
+                    if(touchOn == true){
+                        currentNote = notesTable[this.index];
+                        console.log(currentNote);
+                        createNote(notesTable[this.index]);
+                    }
+                        this.opacity = this.opacity + 0.05;
+                        this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
+                }
                 if(notesTable.indexOf(currentNote) == this.index){
                     this.opacity = globalGainNode.gain.value;
                     this.noteOn = true;
                     createNote(notesTable[this.index]);
-                }
-                // check if hovered
-                if(this.opacity <= globalGainNode.gain.value && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
-                    if(this.noteOn == false){
-                        // currentNote = notesTable[this.index];
-                        // createNote(notesTable[this.index]);
-                    }
-                        this.opacity = this.opacity + 0.05;
-                        this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
-                        // this.noteOn = true;
                 }
                 else if(this.opacity >= 0.01){
                     if(mouse.x <= this.x || mouse.x >= this.x + this.w || mouse.y <= this.y || mouse.y >= this.y + this.h){
