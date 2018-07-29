@@ -33,7 +33,7 @@
     // Global Synth Variables
     const audioCTX = new AudioContext;
     audioCTX.sampleRate = 44100;
-    let scriptNode = audioCTX.createScriptProcessor(1024, 2, 2);
+    let scriptNode = audioCTX.createScriptProcessor(2048, 2, 2);
     // Setup output limiter
     let limiter = audioCTX.createDynamicsCompressor();
     limiter.threshold = -0.3;
