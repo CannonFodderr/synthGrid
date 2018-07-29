@@ -1,7 +1,7 @@
 (()=> {
     const canvas = document.querySelector('canvas');
     let c = canvas.getContext('2d');
-    canvas.style.backgroundColor = "#000"  
+    // canvas.style.backgroundColor = "rgba(0, 0, 0, 1)" ;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     // Particles Variables
@@ -244,6 +244,10 @@
             break;
         }
     });
+    window.addEventListener('touchmove', (e)=>{
+        console.log(e);
+
+    })
     window.addEventListener('keyup', (e)=>{
         if(e.code == "Space"){
             isSustain = false;
@@ -382,7 +386,7 @@
             this.opacity = 0.001;
             this.offset = 0;
             this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
-            this.strokeColor = "#000";
+            this.strokeColor = "rgba(0, 0, 0, 0.2)";
             this.draw = () => {
                 c.fillStyle = color;
                 c.beginPath();
@@ -495,6 +499,7 @@
                     this.i = 0;
                 }
                 this.i = this.i + this.velocity;
+                // Particles circular movement
                 this.x = mouse.x + this.r * canvas.width / 50 * Math.cos(this.i);
                 this.y = mouse.y + this.r * canvas.width / 50 * Math.sin(this.i); 
                 this.draw();
@@ -507,8 +512,8 @@
         function Particle () {
             this.x = x;
             this.y = y;
-            this.dx = (Math.random() - 0.5) * 0.015;
-            this.dy = (Math.random() - 0.5) * 0.015;
+            this.dx = (Math.random() - 0.5) * 0.2;
+            this.dy = (Math.random() - 0.5) * 0.2;
             this.r = r;
             this.offsetX = 0;
             this.opacity = Math.random() + 0.01;
@@ -526,13 +531,14 @@
             }
             this.update = () => {
                 if(mouse.x > canvas.width / 2 && this.offsetX < 180){
-                    this.x = this.x - Math.floor(globalGainNode.gain.value * 4) * (this.dx * 5);
+                    this.x = this.x - Math.floor(globalGainNode.gain.value * 4) * (this.dx * 2);
                     this.offsetX++;
                 }
                 if(mouse.x < canvas.width / 2 && this.offsetX > -180){
-                    this.x = this.x + Math.floor(globalGainNode.gain.value * 4) * (this.dx * 5);
+                    this.x = this.x + Math.floor(globalGainNode.gain.value * 4) * (this.dx * 2);
                     this.offsetX--;
                 }
+
                 if(this.x + this.r > canvas.width || this.x - this.r < 0){
                     this.dx = -this.dx;
                 }
@@ -608,11 +614,7 @@
         cursorGenerator();
         animate();    
     } 
-    
-    
     init();
-    
-    
 })();
 
 
