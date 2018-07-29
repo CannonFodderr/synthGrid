@@ -252,13 +252,17 @@
             break;
         }
     });
+
     window.addEventListener('touchstart', (e)=>{
         console.log(e);
+        mouse.x = e.changedTouches[0].clientX;
+        mouse.y = e.changedTouches[0].clientY;
+        console.log(e.changedTouches[0]);
         touchOn = true;
         noteON = true;
     });
     window.addEventListener('touchmove', (e)=>{
-        console.log(e);
+        e.preventDefault();
         mouse.x = e.changedTouches[0].clientX;
         mouse.y = e.changedTouches[0].clientY;
         touchOn = false;
@@ -268,13 +272,13 @@
     window.addEventListener('touchend', (e)=>{
         noteON = false;
         touchOn = false;
-    })
+    });
     window.addEventListener('keyup', (e)=>{
         if(e.code == "Space"){
             isSustain = false;
         }
         noteON = false;
-    })
+    });
     // Transpose and Octaves
     setScale = (e) => {
         if(octave >= -2 && e.code == "BracketRight"){
@@ -348,13 +352,11 @@
         if(noteON == true){
             let newNote =  new Note;
             player(newNote);
-            touchOn = false;
         }
     }
         
     
     player = (newNote) => {
-        console.log(newNote)
         if(newNote != undefined){
             playedNotes.unshift(newNote);
             for(let i = 0; i < playedNotes.length; i++){
@@ -421,22 +423,20 @@
                 c.stroke();
             };
             this.update = () => {
-                
-                // check if hovered
-                if(this.opacity <= globalGainNode.gain.value && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
-                    if(touchOn == true){
-                        currentNote = notesTable[this.index];
-                        console.log(currentNote);
-                        createNote(notesTable[this.index]);
-                    }
-                        this.opacity = this.opacity + 0.05;
-                        this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
-                }
                 if(notesTable.indexOf(currentNote) == this.index){
                     this.opacity = globalGainNode.gain.value;
                     this.noteOn = true;
                     createNote(notesTable[this.index]);
                 }
+                // check if hovered
+                if(this.opacity <= globalGainNode.gain.value && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
+                    if(touchOn == true){
+                        currentNote = notesTable[this.index];
+                    }
+                        this.opacity = this.opacity + 0.05;
+                        this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
+                }
+                
                 else if(this.opacity >= 0.01){
                     if(mouse.x <= this.x || mouse.x >= this.x + this.w || mouse.y <= this.y || mouse.y >= this.y + this.h){
                         this.noteOn = false;
