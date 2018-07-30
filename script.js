@@ -84,6 +84,7 @@
     let rootNote = 16.35; 
     let notesTable = [];
     let playedNotes = [];
+    let unreleasedKeys = [];
     let isSustain = false;
     let currentNote;
     let transpose = 0;
@@ -186,78 +187,103 @@
     // Keyboard listeners
     })
     window.addEventListener('keydown', (e)=>{
-        switch(e.code){
-            case "Digit1": selectedWaveform = "sine";
-            setDisplayText("waveform", "Sine");
-            break;
-            case "Digit2": selectedWaveform = "square";
-            setDisplayText("waveform", "Square");
-            break;
-            case "Digit3": selectedWaveform = "sawtooth";
-            setDisplayText("waveform", "Sawtooth");
-            break;
-            case "Digit4": selectedWaveform = "triangle";
-            setDisplayText("waveform", "Triangle");
-            break;
-            case "KeyM": muteSound()
-            break;
-            case "KeyA": currentNote = notesTable[12 + semiTones];
-            noteON = true;
-            break;
-            case "KeyD": currentNote = notesTable[8 + semiTones];
-            noteON = true;
-            break;
-            case "KeyE": currentNote = notesTable[9 + semiTones];
-            noteON = true;
-            break;
-            case "KeyF": currentNote = notesTable[7 + semiTones];
-            noteON = true;
-            break;
-            case "KeyG": currentNote = notesTable[5 + semiTones];
-            noteON = true;
-            break;
-            case "KeyH": currentNote = notesTable[3 + semiTones];
-            noteON = true;
-            break;
-            case "KeyJ": currentNote = notesTable[1 + semiTones];
-            noteON = true;
-            break;
-            case "KeyK": currentNote = notesTable[0 + semiTones];
-            noteON = true;
-            break;
-            case "KeyS": currentNote = notesTable[10 + semiTones];
-            noteON = true;
-            break;
-            case "KeyT": currentNote = notesTable[6 + semiTones];
-            noteON = true;
-            break;
-            case "KeyU": currentNote = notesTable[2 + semiTones];
-            noteON = true;
-            break;
-            case "KeyW": currentNote = notesTable[11 + semiTones];
-            noteON = true;
-            break;
-            case "KeyY": currentNote = notesTable[4 + semiTones];
-            noteON = true;
-            break;
-            case "BracketRight": setScale(e);
-            break;
-            case "BracketLeft": setScale(e);
-            break;
-            case "Equal": setScale(e);
-            break;
-            case "Minus": setScale(e);
-            break;
-            case "Space": isSustain = true;
-            break;
-        }
+        e.preventDefault();
+        if(unreleasedKeys.indexOf(e.code) == -1){
+            unreleasedKeys.push(e.code);
+            switch(e.code){
+                case "Digit1": selectedWaveform = "sine";
+                setDisplayText("waveform", "Sine");
+                break;
+                case "Digit2": selectedWaveform = "square";
+                setDisplayText("waveform", "Square");
+                break;
+                case "Digit3": selectedWaveform = "sawtooth";
+                setDisplayText("waveform", "Sawtooth");
+                break;
+                case "Digit4": selectedWaveform = "triangle";
+                setDisplayText("waveform", "Triangle");
+                break;
+                case "KeyM": muteSound()
+                break;
+                case "KeyA": currentNote = notesTable[12 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyD": currentNote = notesTable[8 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyE": currentNote = notesTable[9 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyF": currentNote = notesTable[7 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyG": currentNote = notesTable[5 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyH": currentNote = notesTable[3 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyJ": currentNote = notesTable[1 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyK": currentNote = notesTable[0 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyS": currentNote = notesTable[10 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyT": currentNote = notesTable[6 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyU": currentNote = notesTable[2 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyW": currentNote = notesTable[11 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "KeyY": currentNote = notesTable[4 + semiTones];
+                noteON = true;
+                createNote(currentNote);
+                break;
+                case "BracketRight": setScale(e);
+                break;
+                case "BracketLeft": setScale(e);
+                break;
+                case "Equal": setScale(e);
+                break;
+                case "Minus": setScale(e);
+                break;
+                case "Space": isSustain = true;
+                break;
+            }
+        };
     });
-
+    window.addEventListener('keypress', (e)=>{
+        noteON = false;
+    });
+    window.addEventListener('keyup', (e)=>{
+        let index = unreleasedKeys.indexOf(e.code);
+        unreleasedKeys.splice(index, 1);      
+        if(e.code == "Space"){
+            isSustain = false;
+        }
+        noteON = false;
+    });
     window.addEventListener('touchstart', (e)=>{
-        console.log(e);
         mouse.x = e.changedTouches[0].clientX;
         mouse.y = e.changedTouches[0].clientY;
-        console.log(e.changedTouches[0]);
         touchOn = true;
         noteON = true;
     });
@@ -273,12 +299,7 @@
         noteON = false;
         touchOn = false;
     });
-    window.addEventListener('keyup', (e)=>{
-        if(e.code == "Space"){
-            isSustain = false;
-        }
-        noteON = false;
-    });
+    
     // Transpose and Octaves
     setScale = (e) => {
         if(octave >= -2 && e.code == "BracketRight"){
@@ -309,6 +330,7 @@
     createNote = (freq) => {
         function Note () {
             this.osc = audioCTX.createOscillator();
+            this.keyCode;
             this.osc.type = selectedWaveform;
             this.gainNode = audioCTX.createGain();
             this.noteOn = false;
@@ -349,15 +371,18 @@
                     this.osc.stop(0)
             }
     }
+        let newNote =  new Note;
         if(noteON == true){
-            let newNote =  new Note;
+            
             player(newNote);
         }
+        // return newNote;
     }
         
     
     player = (newNote) => {
-        if(newNote != undefined){
+        console.log(newNote);
+        if(newNote != undefined && newNote != playedNotes[0]){
             playedNotes.unshift(newNote);
             for(let i = 0; i < playedNotes.length; i++){
                 switch(i){
@@ -366,7 +391,6 @@
                     case 1: break;
                     case 16: playedNotes[16].stop();
                     break;
-                    // default: playedNotes[i].stop();
                 }
             }
         }
@@ -402,7 +426,8 @@
     gridGenerator = (x, y, w, h, color, index) =>{
         function GridBlock () {
             this.index = index;
-            this.noteOn = false; 
+            this.noteOn = false;
+            this.isPressed = false; 
             this.x = x;
             this.y = y;
             this.w = w;
@@ -426,7 +451,7 @@
                 if(notesTable.indexOf(currentNote) == this.index){
                     this.opacity = globalGainNode.gain.value;
                     this.noteOn = true;
-                    createNote(notesTable[this.index]);
+                    // createNote(notesTable[this.index]);
                 }
                 // check if hovered
                 if(this.opacity <= globalGainNode.gain.value && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
