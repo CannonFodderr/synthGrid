@@ -40,67 +40,74 @@
     let maxGridBlocks = maxGridRows * 12;
     // Global Synth Variables
     let AudioContext = window.AudioContext || window.webkitAudioContext;
-    const audioCTX = new AudioContext();
-    // Check if audioContext is suspended
-    audioCTX.suspend();
-    webAudioTouchUnlock = (context) => {
-        return new Promise((resolve, reject)=>{
-            if(context.state === 'suspended' && 'ontouchstart' in window){
-                let unlock = () => {
-                    context.resume().then(()=>{
-                        document.body.removeEventListener('touchstart', unlock);
-                        document.body.removeEventListener('touchend', unlock);
-                        resolve(true);
-                    }, (reason)=> {
-                        reject(reason);
-                    });
-                };
-                document.body.addEventListener('touchstart', unlock, false);
-                document.body.addEventListener('touchend', unlock, false);
-            } else {
-                resolve(false);
+    let audioCTX;
+    let globalGainNode;
+    let gainRestore;
+    let gainAdjustment;
+    setupAudioContext = () => {
+        audioCTX = new AudioContext();
+        console.log(audioCTX)
+        // Check if audioContext is suspended
+        audioCTX.suspend();
+        webAudioTouchUnlock = (context) => {
+            return new Promise((resolve, reject)=>{
+                if(context.state === 'suspended' && 'ontouchstart' in window){
+                    let unlock = () => {
+                        context.resume().then(()=>{
+                            document.body.removeEventListener('touchstart', unlock);
+                            document.body.removeEventListener('touchend', unlock);
+                            resolve(true);
+                        }, (reason)=> {
+                            reject(reason);
+                        });
+                    };
+                    document.body.addEventListener('touchstart', unlock, false);
+                    document.body.addEventListener('touchend', unlock, false);
+                } else {
+                    resolve(false);
+                }
+            });
+        }
+        webAudioTouchUnlock(audioCTX);
+        let scriptNode = audioCTX.createScriptProcessor(2048, 2, 2);
+        // Setup output limiter
+        let limiter = audioCTX.createDynamicsCompressor();
+        limiter.threshold = -0.3;
+        limiter.reduction = 100;
+        // Audio to buffer
+        scriptNode.onaudioprocess = (event) => {
+            let inputBuffer = event.inputBuffer;
+            let outputBuffer = event.outputBuffer;
+            for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+                var inputData = inputBuffer.getChannelData(channel);
+                var outputData = outputBuffer.getChannelData(channel);
+            
+                // Loop through the 4096 samples
+                for (var sample = 0; sample < inputBuffer.length; sample++) {
+                // make output equal to the same as the input
+                outputData[sample] = inputData[sample];
+            
+                // add noise to each output sample
+                //   outputData[sample] += ((Math.random() * 2) - 1) * 0.2;         
+                }
             }
-        });
+        }
+        // Setup global gain
+        globalGainNode = audioCTX.createGain();
+        globalGainNode.gain.value = 0.5;
+        gainRestore = 0.3;
+        gainAdjustment = 0.01;
+        // Setup global filter
+        // let quadFilter = audioCTX.createBiquadFilter();
+        // quadFilter.type = "highpass";
+        // quadFilter.frequency = 0;
+        // quadFilter.gain.value = "-0.03";
+        // Synth Connectors
+        globalGainNode.connect(limiter);
+        // quadFilter.connect(limiter);
+        limiter.connect(scriptNode);
+        scriptNode.connect(audioCTX.destination);
     }
-    webAudioTouchUnlock(audioCTX);
-    audioCTX.sampleRate = 48000;
-    let scriptNode = audioCTX.createScriptProcessor(2048, 2, 2);
-    // Setup output limiter
-    let limiter = audioCTX.createDynamicsCompressor();
-    limiter.threshold = -0.3;
-    limiter.reduction = 100;
-    // Audio to buffer
-    scriptNode.onaudioprocess = (event) => {
-        let inputBuffer = event.inputBuffer;
-        let outputBuffer = event.outputBuffer;
-        for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
-            var inputData = inputBuffer.getChannelData(channel);
-            var outputData = outputBuffer.getChannelData(channel);
-            // Loop through the 4096 samples
-            for (var sample = 0; sample < inputBuffer.length; sample++) {
-              // make output equal to the same as the input
-              outputData[sample] = inputData[sample];
-        
-              // add noise to each output sample
-            //   outputData[sample] += ((Math.random() * 2) - 1) * 0.2;         
-            }
-          }
-    }
-    // Setup global gain
-    let globalGainNode = audioCTX.createGain();
-    globalGainNode.gain.value = 0.5;
-    let gainRestore = 0.3;
-    let gainAdjustment = 0.01;
-    // Setup global filter
-    // let quadFilter = audioCTX.createBiquadFilter();
-    // quadFilter.type = "highpass";
-    // quadFilter.frequency = 0;
-    // quadFilter.gain.value = "-0.03";
-    // Synth Connectors
-    globalGainNode.connect(limiter);
-    // quadFilter.connect(limiter);
-    limiter.connect(scriptNode);
-    scriptNode.connect(audioCTX.destination);
     // Global Notes Variables
     let noteON = false;
     let rootNote = 16.35; 
@@ -146,7 +153,7 @@
         
     });
     window.addEventListener('beforeunload', ()=>{
-        audioCTX.close();
+        audioCTX.suspend();
     })
     muteSound = () => {
         if(isMuted == false){
@@ -397,7 +404,10 @@
     }
         let newNote =  new Note;
         if(noteON == true){
-            
+            if(audioCTX.sampleRate === 48000){
+                console.log('creating new context')
+                audioCTX = new AudioContext();
+            }
             player(newNote);
         }
         // return newNote;
@@ -405,46 +415,6 @@
         
     
     player = (newNote) => {
-        let AudioContext = window.AudioContext || window.webkitAudioContext;
-    const audioCTX = new AudioContext();
-    audioCTX.sampleRate = 48000;
-    let scriptNode = audioCTX.createScriptProcessor(2048, 2, 2);
-    // Setup output limiter
-    let limiter = audioCTX.createDynamicsCompressor();
-    limiter.threshold = -0.3;
-    limiter.reduction = 100;
-    // Audio to buffer
-    scriptNode.onaudioprocess = (event) => {
-        let inputBuffer = event.inputBuffer;
-        let outputBuffer = event.outputBuffer;
-        for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
-            var inputData = inputBuffer.getChannelData(channel);
-            var outputData = outputBuffer.getChannelData(channel);
-            // Loop through the 4096 samples
-            for (var sample = 0; sample < inputBuffer.length; sample++) {
-              // make output equal to the same as the input
-              outputData[sample] = inputData[sample];
-        
-              // add noise to each output sample
-            //   outputData[sample] += ((Math.random() * 2) - 1) * 0.2;         
-            }
-          }
-    }
-    // Setup global gain
-    let globalGainNode = audioCTX.createGain();
-    globalGainNode.gain.value = 0.5;
-    let gainRestore = 0.3;
-    let gainAdjustment = 0.01;
-    // Setup global filter
-    // let quadFilter = audioCTX.createBiquadFilter();
-    // quadFilter.type = "highpass";
-    // quadFilter.frequency = 0;
-    // quadFilter.gain.value = "-0.03";
-    // Synth Connectors
-    globalGainNode.connect(limiter);
-    // quadFilter.connect(limiter);
-    limiter.connect(scriptNode);
-    scriptNode.connect(audioCTX.destination);
         if(newNote != undefined && newNote != playedNotes[0]){
             playedNotes.unshift(newNote);
             for(let i = 0; i < playedNotes.length; i++){
@@ -731,6 +701,7 @@
         particlesArr = [];
         notesTable = [];
         playedNotes = [];
+        setupAudioContext();
         gridArrGenerator();
         particlesArrGenerator()
         drawhud();
