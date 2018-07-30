@@ -47,7 +47,8 @@
     audioCTX.suspend();
     webAudioTouchUnlock = (context) => {
         return new Promise((resolve, reject)=>{
-            if(context.state === 'suspended' && 'ontouchstart' in window){
+            if(audioCTX.state === 'suspended' && 'ontouchstart' in window){
+                console.log(audioCTX.state);
                 let unlock = () => {
                     context.resume().then(()=>{
                         document.body.removeEventListener('touchstart', unlock);
@@ -59,6 +60,7 @@
                 };
                 document.body.addEventListener('touchstart', unlock, false);
                 document.body.addEventListener('touchend', unlock, false);
+                
             } else {
                 resolve(false);
             }
