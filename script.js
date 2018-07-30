@@ -86,6 +86,7 @@
     let playedNotes = [];
     let unreleasedKeys = [];
     let isSustain = false;
+    let touchNote;
     let currentNote;
     let transpose = 0;
     let transposeArr = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B", "C"];
@@ -282,10 +283,12 @@
         noteON = false;
     });
     window.addEventListener('touchstart', (e)=>{
+        e.preventDefault();
         mouse.x = e.changedTouches[0].clientX;
         mouse.y = e.changedTouches[0].clientY;
         touchOn = true;
         noteON = true;
+        createNote(currentNote);
     });
     window.addEventListener('touchmove', (e)=>{
         e.preventDefault();
@@ -451,12 +454,12 @@
                 if(notesTable.indexOf(currentNote) == this.index){
                     this.opacity = globalGainNode.gain.value;
                     this.noteOn = true;
-                    // createNote(notesTable[this.index]);
                 }
                 // check if hovered
                 if(this.opacity <= globalGainNode.gain.value && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
+                    touchNote = notesTable[this.index];
                     if(touchOn == true){
-                        currentNote = notesTable[this.index];
+                        currentNote = touchNote;
                     }
                         this.opacity = this.opacity + 0.05;
                         this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
