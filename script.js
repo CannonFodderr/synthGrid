@@ -283,24 +283,23 @@
         noteON = false;
     });
     window.addEventListener('touchstart', (e)=>{
-        e.preventDefault();
         mouse.x = e.changedTouches[0].clientX;
         mouse.y = e.changedTouches[0].clientY;
         touchOn = true;
         noteON = true;
-        createNote(currentNote);
+        
     });
     window.addEventListener('touchmove', (e)=>{
-        e.preventDefault();
         mouse.x = e.changedTouches[0].clientX;
         mouse.y = e.changedTouches[0].clientY;
-        touchOn = false;
+        touchOn = true;
         noteON = false;
         
     });
     window.addEventListener('touchend', (e)=>{
         noteON = false;
         touchOn = false;
+        currentNote = "";
     });
     
     // Transpose and Octaves
@@ -384,7 +383,6 @@
         
     
     player = (newNote) => {
-        console.log(newNote);
         if(newNote != undefined && newNote != playedNotes[0]){
             playedNotes.unshift(newNote);
             for(let i = 0; i < playedNotes.length; i++){
@@ -392,7 +390,7 @@
                     case 0: playedNotes[0].play();
                     break;
                     case 1: break;
-                    case 16: playedNotes[16].stop();
+                    // case 16: playedNotes[16].stop();
                     break;
                 }
             }
@@ -424,6 +422,14 @@
     }
     clearCanvas = () => {
         c.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    generateSingleTouchNote = (note) => {
+        currentNote = touchNote;
+        if(note != playedNotes[1] && touchOn == true){
+            playedNotes.unshift(currentNote);
+            createNote(currentNote);
+        }
+        
     }
     
     gridGenerator = (x, y, w, h, color, index) =>{
@@ -457,12 +463,13 @@
                 }
                 // check if hovered
                 if(this.opacity <= globalGainNode.gain.value && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
-                    touchNote = notesTable[this.index];
                     if(touchOn == true){
-                        currentNote = touchNote;
+                        touchNote = notesTable[this.index];
+                        generateSingleTouchNote(currentNote);
+
                     }
-                        this.opacity = this.opacity + 0.05;
-                        this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
+                    this.opacity = this.opacity + 0.05;
+                    this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
                 }
                 
                 else if(this.opacity >= 0.01){
