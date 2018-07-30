@@ -39,8 +39,33 @@
     let gridBlockHeight = innerHeight / maxGridRows;
     let maxGridBlocks = maxGridRows * 12;
     // Global Synth Variables
-    const audioCTX = new AudioContext;
-    audioCTX.sampleRate = 44100;
+    let AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCTX = new AudioContext();
+    // Check if audioContext is suspended
+    audioCTX.suspend();
+    console.log(audioCTX.state);
+    webAudioTouchUnlock = (context) => {
+        return new Promise((resolve, reject)=>{
+            if(context.state === 'suspended' && 'ontouchstart' in window){
+                let unlock = () => {
+                    context.resume().then(()=>{
+                        document.body.removeEventListener('touchstart', unlock);
+                        document.body.removeEventListener('touchend', unlock);
+                        resolve(true);
+                    }, (reason)=> {
+                        reject(reason);
+                    });
+                };
+                document.body.addEventListener('touchstart', unlock, false);
+                document.body.addEventListener('touchend', unlock, false);
+            } else {
+                resolve(false);
+            }
+        });
+    }
+    webAudioTouchUnlock(audioCTX);
+    console.log(webAudioTouchUnlock(audioCTX));
+    // audioCTX.sampleRate = 44100;
     let scriptNode = audioCTX.createScriptProcessor(2048, 2, 2);
     // Setup output limiter
     let limiter = audioCTX.createDynamicsCompressor();
@@ -53,7 +78,6 @@
         for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
             var inputData = inputBuffer.getChannelData(channel);
             var outputData = outputBuffer.getChannelData(channel);
-        
             // Loop through the 4096 samples
             for (var sample = 0; sample < inputBuffer.length; sample++) {
               // make output equal to the same as the input
