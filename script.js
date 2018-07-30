@@ -63,7 +63,7 @@
         });
     }
     webAudioTouchUnlock(audioCTX);
-    // audioCTX.sampleRate = 44100;
+    audioCTX.sampleRate = 48000;
     let scriptNode = audioCTX.createScriptProcessor(2048, 2, 2);
     // Setup output limiter
     let limiter = audioCTX.createDynamicsCompressor();
@@ -407,7 +407,7 @@
     player = (newNote) => {
         let AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioCTX = new AudioContext();
-    // audioCTX.sampleRate = 44100;
+    audioCTX.sampleRate = 48000;
     let scriptNode = audioCTX.createScriptProcessor(2048, 2, 2);
     // Setup output limiter
     let limiter = audioCTX.createDynamicsCompressor();
