@@ -326,6 +326,7 @@
         touchOn = true;
         noteON = true;
         generateSingleTouchNote(touchNote);
+        touchOn = false;
         
     });
     window.addEventListener('touchmove', (e)=>{
