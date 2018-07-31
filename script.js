@@ -344,13 +344,13 @@
         mouse.x = e.clientX;
         mouse.y = e.clientY;
     })
-    window.addEventListener('mousedown', (e)=>{
-        e.preventDefault();
-        touchOn = true;
-        noteON = true;
-        generateSingleTouchNote(touchNote);
-        noteON = false;
-    });
+    // window.addEventListener('mousedown', (e)=>{
+    //     e.preventDefault();
+    //     touchOn = true;
+    //     noteON = true;
+    //     generateSingleTouchNote(touchNote);
+    //     noteON = false;
+    // });
     window.addEventListener('mouseup', (e)=>{
         e.preventDefault();
         noteON = false;
@@ -520,6 +520,7 @@
                     touchNote = notesTable[this.index];
                     if(touchOn == true){
                         generateSingleTouchNote(currentNote);
+                        // createNote(touchNote);
                         touchOn = false;
                     }
                     this.opacity = this.opacity + 0.05;
