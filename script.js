@@ -20,6 +20,10 @@
     let displayText = "";
     let tutorialArr = [
         "Hello !",
+        'Synth with Cats in Space',
+        'Under Construction',
+        'Please note:',
+        'Most desktop features are not supported in Mobile yet',
         'Press "A-K" or Touch to play',
         "Mouse position will alter the note length",
         "Press M for Mute",
