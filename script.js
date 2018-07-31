@@ -20,7 +20,7 @@
     let displayText = "";
     let tutorialArr = [
         "Hello !",
-        'Press "A-K" to play',
+        'Press "A-K" or Touch to play',
         "Mouse position will alter the note length",
         "Press M for Mute",
         "Press [ ] to change octaves",
@@ -325,9 +325,6 @@
         mouse.y = e.changedTouches[0].clientY;
         touchOn = true;
         noteON = true;
-        generateSingleTouchNote(touchNote);
-        touchOn = false;
-        
     });
     window.addEventListener('touchmove', (e)=>{
         mouse.x = e.changedTouches[0].clientX;
@@ -347,9 +344,10 @@
     })
     window.addEventListener('mousedown', (e)=>{
         e.preventDefault();
-        generateSingleTouchNote(touchNote);
         touchOn = true;
         noteON = true;
+        generateSingleTouchNote(touchNote);
+        noteON = false;
     });
     window.addEventListener('mouseup', (e)=>{
         e.preventDefault();
@@ -438,6 +436,7 @@
         
     
     player = (newNote) => {
+        console.log(playedNotes);
         if(newNote != undefined && newNote != playedNotes[0]){
             playedNotes.unshift(newNote);
             for(let i = 0; i < playedNotes.length; i++){
@@ -520,6 +519,7 @@
                     touchNote = notesTable[this.index];
                     if(touchOn == true){
                         generateSingleTouchNote(currentNote);
+                        touchOn = false;
                     }
                     this.opacity = this.opacity + 0.05;
                     this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
