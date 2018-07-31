@@ -43,8 +43,8 @@
     let gridBlockHeight = innerHeight / maxGridRows;
     let maxGridBlocks = maxGridRows * 12;
     // Global Synth Variables
-    let AudioContext = window.AudioContext || window.webkitAudioContext;
-    let audioCTX = new AudioContext();
+    // let AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCTX = new (window.AudioContext || window.webkitAudioContext)();
     // Check if audioContext is suspended
     audioCTX.suspend();
     webAudioUnlock = (context) => {
