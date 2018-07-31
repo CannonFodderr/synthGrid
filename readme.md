@@ -30,5 +30,6 @@ My first attempt of using JS AudioContext with Canvas elements.
 * Canvas text element displays tutorial, volume, transposition & octave changes
 ##### mobile
 
+**Most desktop features are currently not available in mobile**
+
 * basic touch to play notes implementation
-* **Most desktop features a currently not available**
