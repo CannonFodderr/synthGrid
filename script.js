@@ -70,8 +70,7 @@
         });
     }
     
-    // let scriptNode = audioCTX.createScriptProcessor(4096, 1, 1);
-    let scriptNode = audioCTX.createScriptProcessor(1024, 1, 1);
+    let scriptNode = audioCTX.createScriptProcessor(4096, 2, 2);
     // Setup output limiter
     let limiter = audioCTX.createDynamicsCompressor();
     limiter.threshold = -3;
