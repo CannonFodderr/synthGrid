@@ -10,7 +10,7 @@
     let c = canvas.getContext('2d');
     // canvas.style.backgroundColor = "rgba(0, 0, 0, 1)" ;
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight * 0.75;
+    canvas.height = window.innerHeight;
     // Particles Variables
     let maxParticles = 120;
     let particlesArr = [];
@@ -40,14 +40,12 @@
     let maxGridBlocks = maxGridRows * 12;
     // Global Synth Variables
     let AudioContext = window.AudioContext || window.webkitAudioContext;
-    AudioContext.sampleRate = 48000;
     let audioCTX = new AudioContext();
-    audioCTX.sampleRate = 48000;
     // Check if audioContext is suspended
     audioCTX.suspend();
-    webAudioTouchUnlock = (context) => {
+    webAudioUnlock = (context) => {
         return new Promise((resolve, reject)=>{
-            if(audioCTX.state === 'suspended' && 'ontouchstart' in window){
+            if(audioCTX.state === 'suspended' && 'ontouchstart' in window || 'onkeydown' in window){
                 console.log(audioCTX.state);
                 let unlock = () => {
                     context.resume().then(()=>{
@@ -60,6 +58,8 @@
                 };
                 document.body.addEventListener('touchstart', unlock, false);
                 document.body.addEventListener('touchend', unlock, false);
+                document.body.addEventListener('keydown', unlock, false);
+                document.body.addEventListener('keyup', unlock, false);
                 
             } else {
                 resolve(false);
@@ -67,7 +67,8 @@
         });
     }
     
-    let scriptNode = audioCTX.createScriptProcessor(2048, 1, 1);
+    let scriptNode = audioCTX.createScriptProcessor(4096, 1, 1);
+    console.log(scriptNode);
     // Setup output limiter
     let limiter = audioCTX.createDynamicsCompressor();
     limiter.threshold = -0.3;
@@ -84,10 +85,10 @@
             for (var sample = 0; sample < inputBuffer.length; sample++) {
               // make output equal to the same as the input
               outputData[sample] = inputData[sample];
-        
               // add noise to each output sample
             //   outputData[sample] += ((Math.random() * 2) - 1) * 0.2;         
             }
+
           }
     }
     // Setup global gain
@@ -96,12 +97,22 @@
     let gainRestore = 0.3;
     let gainAdjustment = 0.01;
     // Setup global filter
-    // let quadFilter = audioCTX.createBiquadFilter();
-    // quadFilter.type = "highpass";
-    // quadFilter.frequency = 0;
-    // quadFilter.gain.value = "-0.03";
+    let quadFilterLP = audioCTX.createBiquadFilter();
+    let quadFilterHP = audioCTX.createBiquadFilter();
+    // LowPass Settings
+    quadFilterLP.type = "lowpass";
+    quadFilterLP.frequency = 18000;
+    quadFilterLP.q = 12;
+    quadFilterLP.gain.value = -6;
+    // Highpass settings
+    quadFilterHP.type = "highpass";
+    quadFilterHP.frequency = 30;
+    quadFilterHP.q = 12;
+    quadFilterHP.gain.value = -6;
     // Synth Connectors
-    globalGainNode.connect(limiter);
+    globalGainNode.connect(quadFilterLP);
+    quadFilterLP.connect(quadFilterHP);
+    quadFilterHP.connect(limiter);
     // quadFilter.connect(limiter);
     limiter.connect(scriptNode);
     scriptNode.connect(audioCTX.destination);
@@ -115,7 +126,7 @@
     let touchNote;
     let currentNote;
     let transpose = 0;
-    let transposeArr = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B", "C"];
+    // let transposeArr = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B", "C"];
     let octave = 0;
     let semiTones = 36;
     let selectedWaveform = "sine";
@@ -150,8 +161,9 @@
         
     });
     window.addEventListener('beforeunload', ()=>{
+        audioCTX.suspend();
         audioCTX.close();
-    })
+    });
     muteSound = () => {
         if(isMuted == false){
             gainRestore = globalGainNode.gain.value;
@@ -313,6 +325,7 @@
         mouse.y = e.changedTouches[0].clientY;
         touchOn = true;
         noteON = true;
+        generateSingleTouchNote(touchNote);
         
     });
     window.addEventListener('touchmove', (e)=>{
@@ -327,6 +340,22 @@
         touchOn = false;
         currentNote = "";
     });
+    window.addEventListener('mouseover', (e)=>{
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    })
+    window.addEventListener('mousedown', (e)=>{
+        e.preventDefault();
+        generateSingleTouchNote(touchNote);
+        touchOn = true;
+        noteON = true;
+    });
+    window.addEventListener('mouseup', (e)=>{
+        e.preventDefault();
+        noteON = false;
+        touchOn = false;
+        currentNote = "";
+    })
     
     // Transpose and Octaves
     setScale = (e) => {
@@ -401,10 +430,9 @@
     }
         let newNote =  new Note;
         if(noteON == true){
-            
             player(newNote);
         }
-        // return newNote;
+        return newNote;
     }
         
     
@@ -416,7 +444,7 @@
                     case 0: playedNotes[0].play();
                     break;
                     case 1: break;
-                    // case 16: playedNotes[16].stop();
+                    case 16: playedNotes[16].stop();
                     break;
                 }
             }
@@ -452,7 +480,6 @@
     generateSingleTouchNote = (note) => {
         currentNote = touchNote;
         if(note != playedNotes[1] && touchOn == true){
-            playedNotes.unshift(currentNote);
             createNote(currentNote);
         }
         
@@ -489,10 +516,9 @@
                 }
                 // check if hovered
                 if(this.opacity <= globalGainNode.gain.value && mouse.x > this.x && mouse.x < this.x + this.w && mouse.y > this.y && mouse.y < this.y + this.h){
+                    touchNote = notesTable[this.index];
                     if(touchOn == true){
-                        touchNote = notesTable[this.index];
                         generateSingleTouchNote(currentNote);
-
                     }
                     this.opacity = this.opacity + 0.05;
                     this.fillColor = "rgba(" + color + `${this.opacity}` + ")";
@@ -695,7 +721,7 @@
         particlesArr = [];
         notesTable = [];
         playedNotes = [];
-        webAudioTouchUnlock(audioCTX);
+        webAudioUnlock(audioCTX);
         gridArrGenerator();
         particlesArrGenerator()
         drawhud();
