@@ -50,7 +50,6 @@
     webAudioUnlock = (context) => {
         return new Promise((resolve, reject)=>{
             if(audioCTX.state === 'suspended' && 'ontouchstart' in window || 'onkeydown' in window){
-                console.log(audioCTX.state);
                 let unlock = () => {
                     context.resume().then(()=>{
                         document.body.removeEventListener('touchstart', unlock);
@@ -72,7 +71,6 @@
     }
     
     let scriptNode = audioCTX.createScriptProcessor(4096, 1, 1);
-    console.log(scriptNode);
     // Setup output limiter
     let limiter = audioCTX.createDynamicsCompressor();
     limiter.threshold = -0.3;
@@ -106,15 +104,15 @@
     // LowPass Settings
     quadFilterLP.type = "lowpass";
     quadFilterLP.frequency = 18000;
-    quadFilterLP.q = 12;
+    quadFilterLP.q = 3;
     quadFilterLP.gain.value = -6;
     // Highpass settings
     quadFilterHP.type = "highpass";
     quadFilterHP.frequency = 30;
-    quadFilterHP.q = 12;
+    quadFilterHP.q = 3;
     quadFilterHP.gain.value = -6;
     // Synth Connectors
-    globalGainNode.connect(quadFilterLP);
+    globalGainNode.connect(limiter);
     quadFilterLP.connect(quadFilterHP);
     quadFilterHP.connect(limiter);
     // quadFilter.connect(limiter);
@@ -440,7 +438,6 @@
         
     
     player = (newNote) => {
-        console.log(playedNotes);
         if(newNote != undefined && newNote != playedNotes[0]){
             playedNotes.unshift(newNote);
             for(let i = 0; i < playedNotes.length; i++){

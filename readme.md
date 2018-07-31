@@ -6,6 +6,8 @@ My first attempt of using JS AudioContext with Canvas elements.
 
 * AudioContext synth with up to 16 voices
 * AudioContext plays notes to buffer
+* Global gain node - for volume adjustments
+* Global limiter to prevent digital distortion
 * Canvas elements: notes grid, stars background particles, mouse particles & tutorial text.
 * Beta & Kruvi featured in the background!
 * Mouse & Touch positions displayed as Canvas particles
