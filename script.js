@@ -70,11 +70,12 @@
         });
     }
     
-    let scriptNode = audioCTX.createScriptProcessor(4096, 1, 1);
+    // let scriptNode = audioCTX.createScriptProcessor(4096, 1, 1);
+    let scriptNode = audioCTX.createScriptProcessor(1024, 1, 1);
     // Setup output limiter
     let limiter = audioCTX.createDynamicsCompressor();
-    limiter.threshold = -0.3;
-    limiter.reduction = 100;
+    limiter.threshold = -3;
+    limiter.reduction = 60;
     // Audio to buffer
     scriptNode.onaudioprocess = (event) => {
         let inputBuffer = event.inputBuffer;
@@ -133,8 +134,8 @@
     let semiTones = 36;
     let selectedWaveform = "sine";
     let adsr = {
-        attackTime: 0.5,
-        decayTime: 0.03,
+        attackTime: 1,
+        decayTime: 0.3,
         sustainTime: 0,
         releaseTime: 5
     };
@@ -444,14 +445,13 @@
                 switch(i){
                     case 0: playedNotes[0].play();
                     break;
-                    case 1: break;
-                    case 16: playedNotes[16].stop();
+                    case 16: playedNotes[8].stop();
                     break;
                 }
             }
         }
         // Keep only 16 voices
-        if(playedNotes.length > 16){
+        if(playedNotes.length > 8){
             playedNotes.pop();
         }
     }
