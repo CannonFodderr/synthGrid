@@ -133,8 +133,8 @@
     let semiTones = 36;
     let selectedWaveform = "sine";
     let adsr = {
-        attackTime: 1,
-        decayTime: 0.3,
+        attackTime: 0.01,
+        decayTime: 0.01,
         sustainTime: 0,
         releaseTime: 5
     };
@@ -312,7 +312,7 @@
         };
     });
     window.addEventListener('keypress', (e)=>{
-        noteON = false;
+        noteON = true;
     });
     window.addEventListener('keyup', (e)=>{
         let index = unreleasedKeys.indexOf(e.code);
@@ -400,18 +400,19 @@
                 this.osc.connect(this.gainNode);
                 this.gainNode.connect(globalGainNode);
                 this.gainNode.gain = 0.01;
-                this.osc.start();
+                this.osc.start(0);
                 if(isSustain == true){
                     this.isSustain = true
                     this.sustain = 5;
                 }
+                this.gainNode.gain.setValueAtTime(0.001, audioCTX.currentTime)
                 // Attack
-                this.gainNode.gain.exponentialRampToValueAtTime(0.09 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime);
+                this.gainNode.gain.exponentialRampToValueAtTime(0.9 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime);
                 // Decay
-                this.gainNode.gain.exponentialRampToValueAtTime(0.1 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime + adsr.decayTime);
+                this.gainNode.gain.exponentialRampToValueAtTime(0.8 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime + adsr.decayTime);
                 // Sustain & release
                 if(this.isSustained === true){
-                    this.gainNode.gain.setValueAtTime(0.1 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime + adsr.decayTime);
+                    this.gainNode.gain.setValueAtTime(0.001 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime + adsr.decayTime);
                     this.gainNode.gain.exponentialRampToValueAtTime(0.001, audioCTX.currentTime + adsr.attackTime + adsr.decayTime + this.sustain + adsr.releaseTime);
                 // Release
                 }
@@ -425,8 +426,10 @@
             this.stop = () => {
                 this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, audioCTX.currentTime); 
                 this.gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCTX.currentTime + 0.03);
-                this.gainNode.gain.setValueAtTime(0.0001, audioCTX.currentTime); 
+                this.gainNode.gain.setValueAtTime(0.0001, audioCTX.currentTime);
+                setTimeout(()=>{
                     this.osc.stop(0)
+                },100);
             }
     }
         let newNote =  new Note;
