@@ -37,10 +37,10 @@
     let touchOn = false;
     // grid Variables
     let gridArr;
-    let gridBlockWidth = canvas.width / 12;
-    let maxGridRows = Math.floor(canvas.height / gridBlockWidth);
+    let gridBlockWidth = canvas.width / 11;
+    let maxGridRows = 8;
     let gridBlockHeight = innerHeight / maxGridRows;
-    let maxGridBlocks = maxGridRows * 12;
+    let maxGridBlocks = maxGridRows * 11;
     // Global Synth Variables
     let audioCTX;
     let scriptNode;
@@ -695,16 +695,16 @@
         let gridRowNum = 0;
         let gridColNum = 0;
         for(let i = 0; i< maxGridBlocks; i++){
-            if(i > 11 && i % 12 == 0){
+            if(i > 10 && i % 11 == 0){
                 gridRowNum = gridRowNum + 1;
             }
-            if(gridColNum > 11){
+            if(gridColNum > 10){
                 gridColNum = 0;
             }
             let yPosition = gridRowNum * gridBlockHeight;
             let xPosition = gridColNum * gridBlockWidth;
             let color = randomColor();
-            let  newGridBlock = gridGenerator(xPosition, yPosition, gridBlockWidth, gridBlockHeight, color, i);
+            let  newGridBlock = gridGenerator(canvas.width - xPosition - gridBlockWidth, yPosition, gridBlockWidth, gridBlockHeight, color, i);
             let freq = rootNote * Math.pow(1.059463, i);
             gridArr.push(newGridBlock);
             notesTable.unshift(freq);
@@ -739,8 +739,8 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         maxGridRows = 8;
-        maxGridBlocks = maxGridRows * 12;
-        gridBlockWidth = canvas.width / 12;
+        maxGridBlocks = maxGridRows * 11;
+        gridBlockWidth = canvas.width / 11;
         gridBlockHeight = canvas.height / 8
         cursorParticles = [];
         gridArr = [];

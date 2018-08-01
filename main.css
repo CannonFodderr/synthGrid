@@ -77,6 +77,7 @@ canvas {
 }
 @media only screen and (max-width: 768px){
     .img.bg1{
+        touch-action: none;
         position: fixed;
         z-index: 150;
         opacity: 1;
