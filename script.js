@@ -44,8 +44,20 @@
     let gridBlockHeight = innerHeight / maxGridRows;
     let maxGridBlocks = maxGridRows * 12;
     // Global Synth Variables
-    // let AudioContext = window.AudioContext || window.webkitAudioContext;
-    let audioCTX = new (window.AudioContext || window.webkitAudioContext)();
+    let audioCTX;
+    let scriptNode;
+    // Setup output limiter
+    let limiter;
+    // Audio to buffer
+    let globalGainNode;
+    let gainRestore;
+    let gainAdjustment;
+    // Setup global filter
+    let quadFilterLP;
+    let quadFilterHP;
+    // Setup Audio Engine
+    setupAudioEngine = () => {
+        audioCTX = new (window.AudioContext || window.webkitAudioContext)();
     // Check if audioContext is suspended
     audioCTX.suspend();
     webAudioUnlock = (context) => {
@@ -70,10 +82,10 @@
             }
         });
     }
-    
-    let scriptNode = audioCTX.createScriptProcessor(2048, 2, 2);
+    webAudioUnlock(audioCTX);
+    scriptNode = audioCTX.createScriptProcessor(4096, 1, 1);
     // Setup output limiter
-    let limiter = audioCTX.createDynamicsCompressor();
+    limiter = audioCTX.createDynamicsCompressor();
     limiter.threshold = -3;
     limiter.reduction = 60;
     // Audio to buffer
@@ -94,31 +106,33 @@
 
           }
     }
-    // Setup global gain
-    let globalGainNode = audioCTX.createGain();
-    globalGainNode.gain.value = 0.5;
-    let gainRestore = 0.3;
-    let gainAdjustment = 0.01;
-    // Setup global filter
-    let quadFilterLP = audioCTX.createBiquadFilter();
-    let quadFilterHP = audioCTX.createBiquadFilter();
-    // LowPass Settings
-    quadFilterLP.type = "lowpass";
-    quadFilterLP.frequency = 18000;
-    quadFilterLP.q = 3;
-    quadFilterLP.gain.value = -6;
-    // Highpass settings
-    quadFilterHP.type = "highpass";
-    quadFilterHP.frequency = 30;
-    quadFilterHP.q = 3;
-    quadFilterHP.gain.value = -6;
-    // Synth Connectors
-    globalGainNode.connect(limiter);
-    quadFilterLP.connect(quadFilterHP);
-    quadFilterHP.connect(limiter);
-    // quadFilter.connect(limiter);
-    limiter.connect(scriptNode);
-    scriptNode.connect(audioCTX.destination);
+        // Setup global gain
+        globalGainNode = audioCTX.createGain();
+        globalGainNode.gain.value = 0.4;
+        gainRestore = 0.3;
+        gainAdjustment = 0.01;
+        // Setup global filter
+        quadFilterLP = audioCTX.createBiquadFilter();
+        quadFilterHP = audioCTX.createBiquadFilter();
+        // LowPass Settings
+        quadFilterLP.type = "lowpass";
+        quadFilterLP.frequency = 18000;
+        quadFilterLP.q = 3;
+        quadFilterLP.gain.value = -6;
+        // Highpass settings
+        quadFilterHP.type = "highpass";
+        quadFilterHP.frequency = 30;
+        quadFilterHP.q = 3;
+        quadFilterHP.gain.value = -6;
+        // Synth Connectors
+        globalGainNode.connect(limiter);
+        quadFilterLP.connect(quadFilterHP);
+        quadFilterHP.connect(limiter);
+        // quadFilter.connect(limiter);
+        limiter.connect(scriptNode);
+        scriptNode.connect(audioCTX.destination);
+    }
+    
     // Global Notes Variables
     let noteON = false;
     let rootNote = 16.35; 
@@ -731,7 +745,7 @@
         particlesArr = [];
         notesTable = [];
         playedNotes = [];
-        webAudioUnlock(audioCTX);
+        setupAudioEngine()
         gridArrGenerator();
         particlesArrGenerator()
         drawhud();
