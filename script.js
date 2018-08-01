@@ -50,9 +50,6 @@
     let globalGainNode;
     let gainRestore;
     let gainAdjustment;
-    // Setup global filter
-    let quadFilterLP;
-    let quadFilterHP;
     // Setup Audio Engine
     setupAudioEngine = () => {
         audioCTX = new (window.AudioContext || window.webkitAudioContext)();
@@ -109,23 +106,8 @@
         globalGainNode.gain.value = 0.4;
         gainRestore = 0.3;
         gainAdjustment = 0.01;
-        // Setup global filter
-        quadFilterLP = audioCTX.createBiquadFilter();
-        quadFilterHP = audioCTX.createBiquadFilter();
-        // LowPass Settings
-        quadFilterLP.type = "lowpass";
-        quadFilterLP.frequency = 18000;
-        quadFilterLP.q = 3;
-        quadFilterLP.gain.value = -6;
-        // Highpass settings
-        quadFilterHP.type = "highpass";
-        quadFilterHP.frequency = 30;
-        quadFilterHP.q = 3;
-        quadFilterHP.gain.value = -6;
         // Synth Connectors
         globalGainNode.connect(limiter);
-        quadFilterLP.connect(quadFilterHP);
-        quadFilterHP.connect(limiter);
         // quadFilter.connect(limiter);
         limiter.connect(scriptNode);
         scriptNode.connect(audioCTX.destination);
@@ -183,6 +165,13 @@
         audioCTX.suspend();
         audioCTX.close();
     });
+    window.addEventListener('unload', (e)=>{
+        audioCTX.suspend();
+        audioCTX.close();
+    })
+    window.addEventListener('contextmenu', (e)=>{
+        e.preventDefault();
+    })
     muteSound = () => {
         if(isMuted == false){
             gainRestore = globalGainNode.gain.value;
@@ -361,13 +350,6 @@
         mouse.x = e.clientX;
         mouse.y = e.clientY;
     })
-    // window.addEventListener('mousedown', (e)=>{
-    //     e.preventDefault();
-    //     touchOn = true;
-    //     noteON = true;
-    //     generateSingleTouchNote(touchNote);
-    //     noteON = false;
-    // });
     window.addEventListener('mouseup', (e)=>{
         e.preventDefault();
         noteON = false;
@@ -543,7 +525,6 @@
                     touchNote = notesTable[this.index];
                     if(touchOn == true){
                         generateSingleTouchNote(currentNote);
-                        // createNote(touchNote);
                         touchOn = false;
                     }
                     this.opacity = this.opacity + 0.05;
@@ -567,8 +548,6 @@
             gridArr[i].update();
         }
     }
-    
-    
     // Draw Elements from Array
     drawText = () => {
         let text = textGenerator(displayText);
@@ -733,7 +712,6 @@
         drawText();
         drawCursor();
     }
-    
     init = () => {
         clearCanvas();
         canvas.width = window.innerWidth;
