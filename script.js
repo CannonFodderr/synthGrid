@@ -12,7 +12,8 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     // Particles Variables
-    let maxParticles = 120;
+    let maxParticles = canvas.width / 10;
+    console.log(maxParticles)
     let particlesArr = [];
     let cursorParticles = [];
     
@@ -70,7 +71,7 @@
         });
     }
     
-    let scriptNode = audioCTX.createScriptProcessor(4096, 2, 2);
+    let scriptNode = audioCTX.createScriptProcessor(2048, 2, 2);
     // Setup output limiter
     let limiter = audioCTX.createDynamicsCompressor();
     limiter.threshold = -3;
@@ -133,10 +134,10 @@
     let semiTones = 36;
     let selectedWaveform = "sine";
     let adsr = {
-        attackTime: 0.01,
+        attackTime: 0.03,
         decayTime: 0.01,
         sustainTime: 0,
-        releaseTime: 5
+        releaseTime: 1
     };
     // Mouse Controller
     let mouse = {};
@@ -154,7 +155,7 @@
             adsr.releaseTime = 6;
         }
         adsr.releaseTime = 0 + event.clientY /canvas.height;
-        adsr.attackTime = 0 + event.clientX / canvas.width * 2;
+        adsr.attackTime = 0 + event.clientX / (canvas.width * 2);
     }
     window.addEventListener('mousemove', (e)=>{
         mouse.x = e.clientX;
@@ -417,7 +418,11 @@
                 // Release
                 }
                 if(this.isSustained == false){
+                    let now = audioCTX.currentTime + adsr.attackTime + adsr.decayTime + this.sustain + adsr.releaseTime
                     this.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCTX.currentTime + adsr.attackTime + adsr.decayTime + this.sustain + adsr.releaseTime);
+                    setTimeout(()=>{
+                        this.osc.stop(0); 
+                    }, 6000);
                 }
             }
             this.volumeDrop = () => {
