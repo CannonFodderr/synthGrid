@@ -8,6 +8,7 @@ html, body{
     width: 100%;
 }
 body{
+    position: fixed;
     overflow: hidden;
     background-color: #000;
 }
@@ -19,7 +20,6 @@ canvas {
     background-size: cover;
     opacity: 0.8;
 }
-
 .img.bg1{
     position: fixed ;
     z-index: 150;

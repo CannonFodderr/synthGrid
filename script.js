@@ -8,12 +8,10 @@
     }, 100);
     const canvas = document.querySelector('canvas');
     let c = canvas.getContext('2d');
-    // canvas.style.backgroundColor = "rgba(0, 0, 0, 1)" ;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     // Particles Variables
     let maxParticles = canvas.width / 10;
-    console.log(maxParticles)
     let particlesArr = [];
     let cursorParticles = [];
     
@@ -59,53 +57,53 @@
     setupAudioEngine = () => {
         audioCTX = new (window.AudioContext || window.webkitAudioContext)();
     // Check if audioContext is suspended
-    audioCTX.suspend();
-    webAudioUnlock = (context) => {
-        return new Promise((resolve, reject)=>{
-            if(audioCTX.state === 'suspended' && 'ontouchstart' in window || 'onkeydown' in window){
-                let unlock = () => {
-                    context.resume().then(()=>{
-                        document.body.removeEventListener('touchstart', unlock);
-                        document.body.removeEventListener('touchend', unlock);
-                        resolve(true);
-                    }, (reason)=> {
-                        reject(reason);
-                    });
-                };
-                document.body.addEventListener('touchstart', unlock, false);
-                document.body.addEventListener('touchend', unlock, false);
-                document.body.addEventListener('keydown', unlock, false);
-                document.body.addEventListener('keyup', unlock, false);
-                
-            } else {
-                resolve(false);
-            }
-        });
-    }
-    webAudioUnlock(audioCTX);
-    scriptNode = audioCTX.createScriptProcessor(4096, 1, 1);
-    // Setup output limiter
-    limiter = audioCTX.createDynamicsCompressor();
-    limiter.threshold = -3;
-    limiter.reduction = 60;
-    // Audio to buffer
-    scriptNode.onaudioprocess = (event) => {
-        let inputBuffer = event.inputBuffer;
-        let outputBuffer = event.outputBuffer;
-        for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
-            var inputData = inputBuffer.getChannelData(channel);
-            var outputData = outputBuffer.getChannelData(channel);
-        
-            // Loop through the 4096 samples
-            for (var sample = 0; sample < inputBuffer.length; sample++) {
-              // make output equal to the same as the input
-              outputData[sample] = inputData[sample];
-              // add noise to each output sample
-            //   outputData[sample] += ((Math.random() * 2) - 1) * 0.2;         
-            }
+        audioCTX.suspend();
+        webAudioUnlock = (context) => {
+            return new Promise((resolve, reject)=>{
+                if(audioCTX.state === 'suspended' && 'ontouchstart' in window || 'onkeydown' in window){
+                    let unlock = () => {
+                        context.resume().then(()=>{
+                            document.body.removeEventListener('touchstart', unlock);
+                            document.body.removeEventListener('touchend', unlock);
+                            resolve(true);
+                        }, (reason)=> {
+                            reject(reason);
+                        });
+                    };
+                    document.body.addEventListener('touchstart', unlock, false);
+                    document.body.addEventListener('touchend', unlock, false);
+                    document.body.addEventListener('keydown', unlock, false);
+                    document.body.addEventListener('keyup', unlock, false);
+                    
+                } else {
+                    resolve(false);
+                }
+            });
+        }
+        webAudioUnlock(audioCTX);
+        scriptNode = audioCTX.createScriptProcessor(4096, 1, 1);
+        // Setup output limiter
+        limiter = audioCTX.createDynamicsCompressor();
+        limiter.threshold = -3;
+        limiter.reduction = 60;
+        // Audio to buffer
+        scriptNode.onaudioprocess = (event) => {
+            let inputBuffer = event.inputBuffer;
+            let outputBuffer = event.outputBuffer;
+            for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+                var inputData = inputBuffer.getChannelData(channel);
+                var outputData = outputBuffer.getChannelData(channel);
+            
+                // Loop through the 4096 samples
+                for (var sample = 0; sample < inputBuffer.length; sample++) {
+                // make output equal to the same as the input
+                outputData[sample] = inputData[sample];
+                // add noise to each output sample
+                //   outputData[sample] += ((Math.random() * 2) - 1) * 0.2;         
+                }
 
-          }
-    }
+            }
+        }
         // Setup global gain
         globalGainNode = audioCTX.createGain();
         globalGainNode.gain.value = 0.4;
@@ -148,7 +146,7 @@
     let semiTones = 36;
     let selectedWaveform = "sine";
     let adsr = {
-        attackTime: 0.03,
+        attackTime: 0.02,
         decayTime: 0.01,
         sustainTime: 0,
         releaseTime: 1
@@ -156,20 +154,24 @@
     // Mouse Controller
     let mouse = {};
     setNoteEnvelopes = (event) => {
-        if(event.clientY <= 1 || adsr.releaseTime <= 0.1){
-            adsr.releaseTime = 0.1;
+        // Don't change ADSR if touch is on
+        if(!touchOn){
+            if(event.clientY <= 1 || adsr.releaseTime <= 0.1){
+                adsr.releaseTime = 0.1;
+            }
+            if(event.clientY >= window.innerHeight - 10 || adsr.releaseTime >= 6){
+                adsr.releaseTime = 6;
+            }
+            if(event.clientX <= 1 || adsr.attackTime <= 0.1){
+                adsr.releaseTime = 0.1;
+            }
+            if(event.clientY >= window.innerWidth - 10 || adsr.attackTime >= 0.1){
+                adsr.releaseTime = 6;
+            }
+            adsr.releaseTime = 0 + event.clientY /canvas.height;
+            adsr.attackTime = 0 + event.clientX / (canvas.width * 2);
         }
-        if(event.clientY >= window.innerHeight - 10 || adsr.releaseTime >= 6){
-            adsr.releaseTime = 6;
-        }
-        if(event.clientX <= 1 || adsr.attackTime <= 0.1){
-            adsr.releaseTime = 0.1;
-        }
-        if(event.clientY >= window.innerWidth - 10 || adsr.attackTime >= 0.1){
-            adsr.releaseTime = 6;
-        }
-        adsr.releaseTime = 0 + event.clientY /canvas.height;
-        adsr.attackTime = 0 + event.clientX / (canvas.width * 2);
+        
     }
     window.addEventListener('mousemove', (e)=>{
         mouse.x = e.clientX;
