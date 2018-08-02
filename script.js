@@ -82,8 +82,8 @@
         scriptNode = audioCTX.createScriptProcessor(4096, 1, 1);
         // Setup output limiter
         limiter = audioCTX.createDynamicsCompressor();
-        limiter.threshold = -3;
-        limiter.reduction = 60;
+        limiter.threshold.setValueAtTime(-3, audioCTX.currentTime);
+        limiter.ratio.setValueAtTime(20, audioCTX.currentTime);
         // Audio to buffer
         scriptNode.onaudioprocess = (event) => {
             let inputBuffer = event.inputBuffer;
@@ -104,7 +104,7 @@
         }
         // Setup global gain
         globalGainNode = audioCTX.createGain();
-        globalGainNode.gain.value = 0.4;
+        globalGainNode.gain.setValueAtTime(0.4, audioCTX.currentTime);
         gainRestore = 0.3;
         gainAdjustment = 0.01;
         // Synth Connectors
@@ -399,7 +399,7 @@
                 this.osc.frequency.value = this.freq;
                 this.osc.connect(this.gainNode);
                 this.gainNode.connect(globalGainNode);
-                this.gainNode.gain = 0.01;
+                this.gainNode.gain.setValueAtTime(0.001, audioCTX.currentTime);
                 this.osc.start(0);
                 if(isSustain == true){
                     this.isSustain = true
@@ -414,8 +414,8 @@
                 if(this.isSustained === true){
                     this.gainNode.gain.setValueAtTime(0.001 * globalGainNode.gain.value, audioCTX.currentTime + adsr.attackTime + adsr.decayTime);
                     this.gainNode.gain.exponentialRampToValueAtTime(0.001, audioCTX.currentTime + adsr.attackTime + adsr.decayTime + this.sustain + adsr.releaseTime);
-                // Release
                 }
+                // Release
                 if(this.isSustained == false){
                     let now = audioCTX.currentTime + adsr.attackTime + adsr.decayTime + this.sustain + adsr.releaseTime
                     this.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCTX.currentTime + adsr.attackTime + adsr.decayTime + this.sustain + adsr.releaseTime);
@@ -491,7 +491,6 @@
         }
         
     }
-    
     gridGenerator = (x, y, w, h, color, index) =>{
         function GridBlock () {
             this.index = index;
