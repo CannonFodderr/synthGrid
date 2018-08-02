@@ -66,7 +66,7 @@
             });
         };
         webAudioUnlock(audioCTX);
-        scriptNode = audioCTX.createScriptProcessor(4096, 1, 1);
+        scriptNode = audioCTX.createScriptProcessor(1024, 1, 1);
         // Setup output limiter
         limiter = audioCTX.createDynamicsCompressor();
         limiter.threshold.setValueAtTime(-3, audioCTX.currentTime);
@@ -712,7 +712,7 @@
             particlesArr.push(arrItem);
         }
     };
-    let animate = function (_animate) {
+    var animate = function (_animate) {
         function animate() {
             return _animate.apply(this, arguments);
         }
