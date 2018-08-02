@@ -712,7 +712,7 @@
             particlesArr.push(arrItem);
         }
     };
-    let animate = function (_animate) {
+    var animate = function (_animate) {
         function animate() {
             return _animate.apply(this, arguments);
         }
