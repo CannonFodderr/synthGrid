@@ -6,10 +6,19 @@
             loader.style.display = "none";
         }    
     }, 100);
-    const canvas = document.querySelector('canvas');
+    if('serviceWorker' in navigator){
+        window.addEventListener('load', ()=>{
+            navigator.serviceWorker.register('../../sw.js').then((registration)=>{
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, (err)=>{
+                console.log('Service Worker registration failed', err);
+            });
+        });
+
+    }
+    let canvas = document.querySelector('canvas');
     let c = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+
     // Particles Variables
     let maxParticles = canvas.width / 10;
     let particlesArr = [];
@@ -382,6 +391,7 @@
         }  
     }
     window.addEventListener('resize', ()=>{
+        audioCTX.close();
         init();
     })
     // Synth
@@ -639,7 +649,7 @@
             this.stAng = 0;
             this.endAng = Math.PI * 2;
             this.clockwise = false;
-            this.fillColor = `rgba(255, 255, 255. ${this.opacity})`;
+            this.fillColor = `rgba(255, 255, 255, 1)`;
             this.draw = () => {
                 c.beginPath();
                 c.save()
@@ -650,11 +660,11 @@
             }
             this.update = () => {
                 if(mouse.x > canvas.width / 2 && this.offsetX < 180){
-                    this.x = this.x - Math.floor(globalGainNode.gain.value * 4) * (this.dx * 2);
+                    this.x = this.x - this.dx;
                     this.offsetX++;
                 }
                 if(mouse.x < canvas.width / 2 && this.offsetX > -180){
-                    this.x = this.x + Math.floor(globalGainNode.gain.value * 4) * (this.dx * 2);
+                    this.x = this.x + this.dx;
                     this.offsetX--;
                 }
 
@@ -692,7 +702,7 @@
         }
     };
     cursorGenerator = () => {
-        for(i = 0; i < 20; i++){
+        for(i = 0; i < 10; i++){
             let newParticle = GenerateCursorParticles();
             cursorParticles.push(newParticle);
         }
@@ -705,35 +715,38 @@
             particlesArr.push(arrItem);
         }
     }
+    let nextFrame;
     animate = () => {
         clearCanvas();
-        requestAnimationFrame(animate);
         drawGrid();
         drawParticles();
         drawText();
         drawCursor();
+        nextFrame = requestAnimationFrame(animate);
     }
     init = () => {
+        cancelAnimationFrame(nextFrame);
         clearCanvas();
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         maxGridRows = 8;
         maxGridBlocks = maxGridRows * 11;
         gridBlockWidth = canvas.width / 11;
-        gridBlockHeight = canvas.height / 8
+        gridBlockHeight = canvas.height / 8;
+        maxParticles = canvas.width / 10;
         cursorParticles = [];
         gridArr = [];
         particlesArr = [];
         notesTable = [];
         playedNotes = [];
-        setupAudioEngine()
+        setupAudioEngine();
         gridArrGenerator();
         particlesArrGenerator()
-        drawhud();
         cursorGenerator();
         animate();    
     } 
     init();
+    drawhud();
 })();
 
 

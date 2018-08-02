@@ -16,7 +16,7 @@ canvas {
     cursor: none;
     position: relative;
     z-index: 100;
-    background-image: url('./assets/images/spaceSM.jpg');
+    background-image: url('../images/spaceSM.jpg');
     background-size: cover;
     opacity: 0.8;
 }
@@ -54,8 +54,11 @@ canvas {
 }
 .footer{
     font-family: Arial, Helvetica, sans-serif;
-    width: fit-content;
+    width: 100vw;
     letter-spacing: 0.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: absolute;
     bottom: 0;
     background-color: rgb(46, 44, 44);
@@ -66,6 +69,11 @@ canvas {
     z-index: 1000;
     text-transform: uppercase;
     padding: 1vh 1vw 1vh 1vw;
+}
+.footer h5 {
+    text-align: center;
+    display: block;
+    width: 30vw;
 }
 .footer  a {
     color: rgb(232, 12, 122);
@@ -78,7 +86,7 @@ canvas {
 @media only screen and (max-width: 768px){
     .img.bg1{
         touch-action: none;
-        position: fixed;
+        position: absolute;
         z-index: 150;
         opacity: 1;
         mix-blend-mode: soft-light;
