@@ -88,7 +88,7 @@
             });
         }
         webAudioUnlock(audioCTX);
-        scriptNode = audioCTX.createScriptProcessor(512, 1, 1);
+        scriptNode = audioCTX.createScriptProcessor(1024, 1, 1);
         // Setup output limiter
         limiter = audioCTX.createDynamicsCompressor();
         limiter.threshold = -3;
